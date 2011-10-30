@@ -1,0 +1,20 @@
+What is chos?
+ A monolithic kernel.
+ (This is my second time to write this, the original one is discarded.)
+
+Quick start?
+  # make          <- compile and generate bootable disk image
+  # make loaduser <- install basic usermode programs into disk image
+  # make bochs    <- run it in bochs
+
+Debug?
+  # make debug
+  # gdb -q [boot/boot.elf | kernel.elf | user/init]
+  ...
+  # vim [boot/boot.asm | kernel.asm | user/init.asm]
+  ...
+  # grep "some symbol" [boot/boot.sym | kernel.sym | user/init.sym]
+  ...
+
+Author?
+ Xiaochen Wang <wangxiaochen0@gmail.com>

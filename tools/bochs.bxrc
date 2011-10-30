@@ -1,0 +1,29 @@
+# how much memory the emulated machine will have
+megs: 64
+
+# filename of ROM images
+romimage: file=$BXSHARE/BIOS-bochs-latest
+
+vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
+
+# ATA
+ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+
+# what disk images will be used
+ata0-master: type=disk, mode=flat, path="disk.img",cylinders=100,heads=10, spt=10
+
+# choose the boot disk.
+boot: disk
+
+# where do we send log messages?
+log: /dev/null
+
+# disable the mouse, since chos is text only
+mouse: enabled=0
+
+# enable key mapping, using US layout as default.
+keyboard_mapping: enabled=1, map=$BXSHARE/keymaps/x11-pc-us.map
+keyboard_serial_delay: 250
+keyboard_paste_delay: 100000
+
+private_colormap: enabled=0
