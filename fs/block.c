@@ -9,7 +9,7 @@ static struct slab *block_slab;
 #define BLOCK_HASH_SIZE		(1 << BLOCK_HASH_SHIFT)
 #define BLOCK_HASH_MASK		(BLOCK_HASH_SIZE - 1)
 static struct hlist_head block_htable[BLOCK_HASH_SIZE];
-static struct list_head block_buffer_list;
+static LIST_HEAD(block_buffer_list);
 
 static _inline struct block *get_block_ref(struct block *block)
 {
@@ -107,7 +107,7 @@ void put_block(struct block *block)
 {
 	block->b_refcnt--;
 	if (block->b_refcnt == 0) {
-		/* We dont free block memory, just caching it. */
+		/* We dont free block memory or sync block, just caching it. */
 		list_move(&block->b_list, &block_buffer_list);
 		block->b_buffer = 1;
 	} else if (block->b_refcnt < 0) {
@@ -145,7 +145,7 @@ struct block *get_block(struct block_device *bdev, int blk)
 	return block;
 }
 
-/* Called when usable memory is not enough. */
+/* Called when there is no enough free memory. */
 void flush_block_buffer(void)
 {
 	struct block *block;
@@ -226,8 +226,6 @@ void block_init(void)
 	/* init block buffer hash table */
 	for (i = 0; i < BLOCK_HASH_SIZE; i++)
 		hlist_head_init(&block_htable[i]);
-	/* init block buffer list */
-	list_init(&block_buffer_list);
 	hd_init();
 	block_test();
 }
