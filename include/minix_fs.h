@@ -15,6 +15,7 @@ struct block;
 #define MINIX_BLOCK_SIZE	(1 << MINIX_BLOCK_SHIFT)
 #define MINIX_BLOCK_MASK	(MINIX_BLOCK_SIZE - 1)
 #define MINIX_BLOCKS(x)		((x) >> MINIX_BLOCK_SHIFT)
+#define MINIX_BLOCKS_UP(x)	MINIX_BLOCKS((x) + MINIX_BLOCK_MASK)
 #define MINIX_BLOCK_OFF(x)	((x) & MINIX_BLOCK_MASK)
 
 #define MINIX_ZERO_BLOCK	((struct block *)0xffffdead)
@@ -55,7 +56,7 @@ struct block;
 #define minixsuper(s)		((struct minix_d_super_block *)((s)->s_block->b_data))
 #define i2mi(i)			((struct minix_inode *)(i))
 #define i2mdi(i)		(i2mi(i)->m_dinode)
-#define minix_inode_dirty(i)	i2mi(i)->m_block->b_dirty = 1
+#define minix_inode_dirty(i)	i2mi(i)->m_iblock->b_dirty = 1
 
 /* minix inode in device */
 struct minix_d_inode {
@@ -72,9 +73,9 @@ struct minix_inode {
 	struct inode m_inode;
 	struct minix_d_inode *m_dinode;
 	struct hlist_node m_hnode;
-	struct block *m_block;		/* block containing d_inode */
-	struct list_head m_dirty;	/* dirty block */
+	struct block *m_iblock;		/* block containing d_inode */
 } __attribute__((packed));
+
 /*
 struct inode {
 	unsigned long i_atime;
@@ -117,5 +118,6 @@ extern struct minix_d_inode *imap_get_inode(struct super_block *, unsigned int, 
 extern struct block *bmap_block(struct inode *, int, int);
 extern struct block *minix_get_block(struct super_block *, int);
 extern int bmap(struct inode *, int, int);
+extern void minix_inode_dirty_block(struct inode *inode, struct block *block);
 
 #endif	/* minix_fs.h */

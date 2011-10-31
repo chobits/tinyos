@@ -51,3 +51,9 @@ void inode_close(struct inode *inode)
 		inode->i_ops->close(inode);
 }
 
+void inode_sync(struct inode *inode)
+{
+	if (inode->i_ops && inode->i_ops->sync)
+		inode->i_ops->sync(inode);
+}
+

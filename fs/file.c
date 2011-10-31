@@ -1,9 +1,9 @@
+#include <string.h>
+#include <print.h>
+#include <inode.h>
 #include <slab.h>
 #include <file.h>
 #include <fs.h>
-#include <string.h>
-#include <inode.h>
-#include <print.h>
 
 struct slab *file_slab;
 
@@ -106,5 +106,13 @@ off_t file_lseek(struct file *file, off_t offset, int whence)
 		off = -1;
 	put_file(file);
 	return off;
+}
+
+void file_sync(struct file *file)
+{
+	get_file(file);
+	if (file->f_inode)
+		inode_sync(file->f_inode);
+	put_file(file);
 }
 

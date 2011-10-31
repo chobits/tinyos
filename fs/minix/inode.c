@@ -12,6 +12,7 @@ int minix_inode_write(struct inode *inode, char *buf, size_t size, off_t off);
 struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len);
 void minix_inode_update_size(struct inode *inode, size_t size);
 void minix_put_inode(struct inode *inode);
+void minix_sync_inode(struct inode *inode);
 
 static struct inode_operations minix_iops = {
 	.read = minix_inode_read,
@@ -19,6 +20,7 @@ static struct inode_operations minix_iops = {
 	.sub_lookup = minix_inode_sub_lookup,
 	.update_size = minix_inode_update_size,
 	.close = minix_put_inode,
+	.sync = minix_sync_inode,
 };
 
 static struct slab *minix_inode_slab;
@@ -56,9 +58,8 @@ struct minix_inode *minix_alloc_inode(struct super_block *sb,
 		inode->i_ops = &minix_iops;
 		/* init minix inode */
 		mi->m_dinode = mdi;
-		mi->m_block = block;
+		mi->m_iblock = block;
 		minix_inode_hash(mi);
-		list_init(&mi->m_dirty);
 	}
 	return mi;
 }
@@ -108,17 +109,25 @@ void minix_free_inode(struct inode *inode)
 {
 	minix_inode_unhash(i2mi(inode));
 	/* free d_inode */
-	put_block(i2mi(inode)->m_block);
+	put_block(i2mi(inode)->m_iblock);
 }
 
 void minix_put_inode(struct inode *inode)
 {
 	inode->i_refcnt--;	
 	if (inode->i_refcnt == 0) {
-		/* synchronize inode block, but caching the inode */
-		flush_block(i2mi(inode)->m_block);
+		/* Dont synchronize inode or datas, only cache the inode. */
 	} else if (inode->i_refcnt < 0) {
 		printk("Free minix inode too many times(%d)\n", inode->i_refcnt);
+	}
+}
+
+/* Mark inode data block(including indirect map block) dirty */
+void minix_inode_dirty_block(struct inode *inode, struct block *block)
+{
+	if (!block->b_dirty) {
+		block->b_dirty = 1;
+		inode_add_dbc(inode, block);
 	}
 }
 
@@ -138,9 +147,9 @@ int minix_inode_write(struct inode *inode, char *buf, size_t size, off_t off)
 		block = bmap_block(inode, blk, 1);
 		if (!block)
 			break;
-		onesize = min(block->b_size - off, size - wsize);
+		onesize = min(MINIX_BLOCK_SIZE - off, size - wsize);
 		memcpy(block->b_data + off, src, onesize);
-		block->b_dirty = 1;
+		minix_inode_dirty_block(inode, block);
 		put_block(block);
 		/* for next loop */
 		src += onesize;
@@ -214,7 +223,17 @@ void minix_inode_update_size(struct inode *inode, size_t size)
 {
 	struct minix_inode *mi = i2mi(inode);
 	mi->m_dinode->i_size = size;
-	mi->m_block->b_dirty = 1;
+	mi->m_iblock->b_dirty = 1;
+}
+
+void minix_sync_inode(struct inode *inode)
+{
+	/* synchronize inode */
+	flush_block(i2mi(inode)->m_iblock);
+	/* synchronize dirty blocks */
+	inode_sync_dbc(inode);
+	/* free dirty blocks */
+	inode_free_dbc(inode);
 }
 
 void minix_inode_init(void)

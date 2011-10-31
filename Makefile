@@ -75,6 +75,8 @@ loaduser:disk.img
 	sudo losetup /dev/loop0 -o $(shell cat .offset) disk.img
 	-sudo mount -t minix /dev/loop0 /mnt
 	-sudo cp user/init user/hello /mnt/
+	-sudo touch text
+	-sudo cp text /mnt/text
 	-sudo umount /mnt
 	-sudo losetup -d /dev/loop0
 

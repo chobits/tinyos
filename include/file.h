@@ -25,5 +25,6 @@ extern int file_write(struct file *file, char *buf, size_t size);
 extern struct file *get_file(struct file *file);
 extern void put_file(struct file *file);
 extern off_t file_lseek(struct file *file, off_t offset, int whence);
+extern void file_sync(struct file *file);
 
 #endif	/* file.h */

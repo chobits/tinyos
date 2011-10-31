@@ -76,7 +76,6 @@ refork:
 	goto refork;
 #endif
 
-#define TEST_EXEC_SAME
 #ifdef TEST_EXEC_SAME
 	char *argvs[] = { "hello", "world", "Haaaa!", NULL };
 	int i;
@@ -86,6 +85,41 @@ refork:
 	printf("execute error\n");
 	while (1) ;
 #endif
+
+#define TEST_OPEN_CLOSE
+#ifdef TEST_OPEN_CLOSE
+	int fd;
+	char buf[4];
+	int size, i;
+	fd = open("/text", 0);
+	while ((size = read(fd, buf, 4)) > 0)
+		printf("%*s", size, buf);
+	if (size < 0) {
+		printf("read return %d\n", size);
+		goto err;
+	}
+	printf("read ok!\n");
+	if (lseek(fd, 0, SEEK_SET) != 0) {
+		printf("lseek error\n");
+		goto err;
+	}
+	/* (7 + 512 + 1)*1024 */
+	i = 832480;
+	while (i > 0) {
+		if ((size = write(fd, "123456789\n", 10)) != 10) {
+			printf("write error %d\n", size);
+			goto err;
+		}
+		i -= 10;
+	}
+	printf("write ok!\n");
+	fsync(fd);
+	printf("fsync ok!\n");
+	fd = close(fd);
+err:
+	while (1) ;
+#endif
+
 	printf("I'm process %d\n", getpid());
 	while (1) ;
 	return 0;

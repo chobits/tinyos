@@ -1,17 +1,18 @@
 #include <file.h>
 #include <task.h>
+#include <print.h>
 
-void fd_save_file(int fd, struct file *file)
+static void fd_save_file(int fd, struct file *file)
 {
 	ctask->ft.files[fd] = file;
 }
 
-void fd_free(int fd)
+static void fd_free(int fd)
 {
 	ctask->ft.files[fd] = NULL;
 }
 
-int fd_alloc(void)
+static int fd_alloc(void)
 {
 	struct fd_table *ft = &ctask->ft;
 	int fd;
@@ -23,28 +24,53 @@ int fd_alloc(void)
 	return fd;
 }
 
+struct file *fd_put_file(unsigned int fd)
+{
+	struct file *file = NULL;
+	if (fd < FD_SIZE) {
+		file = ctask->ft.files[fd];
+		ctask->ft.files[fd] = NULL;
+	}
+	return file;
+}
+
 struct file *fd_get_file(unsigned int fd)
 {
-	struct fd_table *ft = &ctask->ft;
-	struct file *file = ft->files[fd];
-	if (!file)
-		return NULL;
-	return get_file(file);
+	struct file *file = NULL;
+	if (fd < FD_SIZE) {
+		file = ctask->ft.files[fd];
+		if (file)
+			get_file(file);
+	}
+	return file;
 }
 
 int sys_read(unsigned int fd, char *buf, size_t size)
 {
-	struct file *file = fd_get_file(fd);
-	if (!file)
-		return -1;
-	size = file_read(file, buf, size);
-	put_file(file);
-	return size;
+	struct file *file;
+	int r = -1;
+	if (size <= 0)
+		return size;
+	file = fd_get_file(fd);
+	if (file) {
+		r = file_read(file, buf, size);
+		put_file(file);
+	}
+	return r;
 }
 
 int sys_write(unsigned int fd, char *buf, size_t size)
 {
-	return -1;
+	struct file *file;
+	int r = -1;
+	if (size <= 0)
+		return size;
+	file = fd_get_file(fd);
+	if (file) {
+		r = file_write(file, buf, size);
+		put_file(file);
+	}
+	return r;
 }
 
 int sys_open(char *name, unsigned int mode)
@@ -74,17 +100,21 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 	return offset;
 }
 
-int sys_sync(int fd)
-{
-	return -1;
-}
-
-int sys_close(int fd)
+int sys_fsync(int fd)
 {
 	struct file *file = fd_get_file(fd);
 	if (!file)
 		return -1;
+	file_sync(file);
+	put_file(file);
+	return 0;
+}
+
+int sys_close(int fd)
+{
+	struct file *file = fd_put_file(fd);
+	if (!file)
+		return -1;
 	file_close(file);
-	fd_free(fd);
 	return 0;
 }

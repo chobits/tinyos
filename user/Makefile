@@ -1,6 +1,6 @@
 SUBDIR = user
 CFLAGS	= -Wall -Werror -fno-builtin -nostdinc -nostdlib -Iinclude -g
-ULIB_OBJS = entry.o print.o string.o syscall.o system.o
+ULIB_OBJS = entry.o print.o string.o syscall.o system.o file.o
 
 all:init hello
 hello:hello.o $(ULIB_OBJS)

@@ -33,9 +33,9 @@ int usys_close(int fd)
 	return usyscall(SYS_close, (u32)fd, 0, 0, 0, 0);
 }
 
-int usys_sync(int fd)
+int usys_fsync(int fd)
 {
-	return usyscall(SYS_sync, (u32)fd, 0, 0, 0, 0);
+	return usyscall(SYS_fsync, (u32)fd, 0, 0, 0, 0);
 }
 
 int usys_read(int fd, char *buf, size_t size)
@@ -50,7 +50,7 @@ int usys_write(int fd, char *buf, size_t size)
 
 off_t usys_lseek(int fd, off_t offset, unsigned int set)
 {
-	return usyscall(SYS_write, (u32)offset, (u32)set, 0, 0, 0);
+	return usyscall(SYS_lseek, (u32)fd, (u32)offset, (u32)set, 0, 0);
 }
 
 int usys_fork(void)

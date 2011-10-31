@@ -87,7 +87,7 @@ int bmap(struct inode *inode, int blk, int create)
 			rblk = minix_new_block_nr(sb);
 			if (rblk > 0) {
 				MINIX_BDATA_BLK(block, blk) = rblk;
-				block->b_dirty = 1;
+				minix_inode_dirty_block(inode, block);
 			}
 		}
 		goto out_block;
@@ -115,7 +115,7 @@ int bmap(struct inode *inode, int blk, int create)
 		block2 = minix_new_block(sb, pblk);
 		if (!block2)
 			goto out_block;
-		block->b_dirty = 1;
+		minix_inode_dirty_block(inode, block);
 	} else if (!(block2 = minix_get_block(sb, *pblk)))
 		goto out_block;
 
@@ -128,7 +128,7 @@ int bmap(struct inode *inode, int blk, int create)
 		rblk = minix_new_block_nr(sb);
 		if (rblk > 0) {
 			MINIX_BDATA_BLK(block2, blk & 511) = rblk;
-			block2->b_dirty = 1;
+			minix_inode_dirty_block(inode, block2);
 		}
 	}
 out_block2:

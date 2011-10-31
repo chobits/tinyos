@@ -3,8 +3,8 @@
 #include <file.h>
 #include <inode.h>
 
-extern void minix_fs_init(void);
-extern struct slab *file_slab;
+void minix_fs_init(void);
+struct slab *file_slab;
 void fs_init(void)
 {
 	/* init virtual file system */
