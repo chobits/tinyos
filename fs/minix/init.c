@@ -3,6 +3,7 @@
 #include <print.h>
 #include <types.h>
 #include <task.h>
+#include <boot.h>
 #include <fs.h>
 #include <mm.h>
 
@@ -28,7 +29,6 @@ static void minix_check_super(struct minix_d_super_block *msb)
 	printk("The super block of minix filesystem is ok!\n");
 }
 
-#define MINIXFS_START *(unsigned short *)VADDR(0x7c00 + 506)
 extern struct block_device hd_bdev;
 
 struct block *minix_get_block(struct super_block *s, int blk)

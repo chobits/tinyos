@@ -24,7 +24,7 @@ user/init:user/*.c user/*.S
 	@make -C user/ all
 
 disk.img:boot/boot.bin kernel.bin tools/build tools/mkfs.minix
-	$(Q)$(BUILD) boot/boot.bin kernel.bin
+	$(Q)$(BUILD) boot/boot.bin kernel.bin 10000
 	@echo " [BUILD]  boot/boot.bin"
 	$(Q)$(DD) of=$@ if=/dev/zero bs=512 count=10000 2>/dev/null
 	$(Q)$(DD) of=$@ if=boot/boot.bin conv=notrunc 2>/dev/null
@@ -102,7 +102,7 @@ clean:
 	rm -rf kernel.elf kernel.bin kernel.sym kernel.asm
 	rm -rf */*/*.o */*.o boot/boot.bin boot/boot.elf boot/boot.asm boot/boot.sym
 	rm -rf user/init user/init.sym user/init.asm user/hello
-	rm -rf tools/mkfs.minix tools/build tags .offset disk.img 
+	rm -rf tools/mkfs.minix tools/build tags .offset disk.img text
 
 lines:
 	@echo "code lines:"

@@ -1,6 +1,8 @@
+#include <print.h>
+#include <boot.h>
 #include <disk.h>
 #include <x86.h>
-#include <print.h>
+#include <mm.h>
 
 static int ide_wait(int check)
 {
@@ -74,5 +76,5 @@ int ide_write_sect(int sects, void *src, int lba)
 
 int ide_blocks(void)
 {
-	return 10000;
+	return IDE_DISK_SECTS / 2;
 }

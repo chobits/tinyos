@@ -29,6 +29,11 @@ struct boot_param {
 };
 
 #define BOOT_PARAM_ADDR	0x8c00
+/* used by bootloader */
+#define KERNEL_SECTS	*(unsigned short *)(0x7c00 + 508)
+/* used by kernel init */
+#define MINIXFS_START	*(unsigned short *)VADDR(0x7c00 + 506)
+#define IDE_DISK_SECTS	*(unsigned int *)VADDR(0x7c00 + 500)
 
 #endif	/* __ASM__ */
 

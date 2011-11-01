@@ -1,6 +1,7 @@
 #include <disk.h>
-#include <mm.h>
+#include <boot.h>
 #include <x86.h>
+#include <mm.h>
 
 static void disk_wait(void)
 {
@@ -27,7 +28,6 @@ static void disk_readsect(void *dst, int lba)
 	insl(ATA_MASTER_DATA, dst, SECT_SIZE / sizeof(int));
 }
 
-#define KERNEL_SECTS	*(unsigned short *)(0x7c00 + 508)
 static void load_kernel(void)
 {
 	void *kern_addr = (void *)KERNEL_START;

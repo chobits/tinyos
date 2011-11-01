@@ -7,8 +7,8 @@
 
 static char *boot, *kernel;
 static int bfd, kfd;
-static int ksize;
-static int fsoff;
+static int ksize, fsoff;
+static unsigned int sectors;
 
 static void die(char *str)
 {
@@ -21,16 +21,20 @@ static void die(char *str)
 
 static void usage(void)
 {
-	fprintf(stderr, "build bootimage kernelimage\n");
+	fprintf(stderr, "build bootimage kernelimage sectors\n");
 	exit(EXIT_FAILURE);
 }
 
 static void parse_args(int argc, char **argv)
 {
-	if (argc != 3)
+	if (argc != 4)
 		usage();
 	boot = argv[1];
 	kernel = argv[2];
+	sectors = atoll(argv[3]);
+	/* must be larger than 2MB */
+	if (sectors < 4096)
+		die("sectors size is too small");
 }
 
 void fwriteoffset(unsigned int offset)
@@ -54,7 +58,7 @@ static void open_image(void)
 
 static void build_image(void)
 {
-	/* write sectors of kernel image into offset 508 of boot.bin*/
+	/* write sectors of kernel image into offset 508(2 bytes) of boot.bin*/
 	ksize = lseek(kfd, 0, SEEK_END);
 	if (ksize < 0)
 		die("lseek kernel image");
@@ -65,7 +69,7 @@ static void build_image(void)
 		die("lseek boot image");
 	if (write(bfd, &ksize, 2) != 2)
 		die("write boot image");
-	/* write filesystem start block number into offset 506 of boot.bin */
+	/* write filesystem start block number into offset 506(2 bytes) of boot.bin */
 	fsoff = ((8 + ksize) + 1) / 2;
 	if (fsoff > 0xffff)
 		die("file system offset is too large!");
@@ -74,6 +78,14 @@ static void build_image(void)
 	if (write(bfd, &fsoff, 2) != 2)
 		die("write boot image");
 	fwriteoffset(fsoff * 1024);
+	/*
+	 * write sectors of disk into offset 500(4 bytes) of boot.bin
+	 *  (support max size of 2TB)
+	 */
+	if (lseek(bfd, 500, SEEK_SET) != 500)
+		die("lseek boot image");
+	if (write(bfd, &sectors, 4) != 4)
+		die("write boot image");
 }
 
 static void close_image(void)
