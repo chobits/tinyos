@@ -120,9 +120,9 @@ int strnncpy(char *dst, char *src, int n)
 		n--;
 		i++;
 	}
-	/* 
+	/*
 	 * Dont pad the remainder of dest with null
-	 * if the length of src is less than n 
+	 * if the length of src is less than n
 	 */
 	return i;
 }

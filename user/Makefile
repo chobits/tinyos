@@ -1,22 +1,22 @@
 SUBDIR = user
 CFLAGS	= -Wall -Werror -fno-builtin -nostdinc -nostdlib -Iinclude -g
-ULIB_OBJS = entry.o print.o string.o syscall.o system.o file.o
+export SUBDIR CFLAGS
 
 all:init hello
-hello:hello.o $(ULIB_OBJS)
+hello:hello.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
 
-init:init.o $(ULIB_OBJS)
+init:init.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
 
 %.o:%.c
 	$(Q)$(CC) $(CFLAGS) $< -c -o $@
 	@echo " [CC]  $(SUBDIR)/$@"
-%.o:%.S
-	$(Q)$(CC) $(CFLAGS) $< -c -o $@
-	@echo " [CC]  $(SUBDIR)/$@"
+
+libc/libc.o:libc/*.c libc/*.S
+	@make -C libc/
 
 debug:init.asm init.sym
 init.asm:init

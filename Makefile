@@ -20,7 +20,7 @@ OBJS	= kernel/kernel.o mm/mm.o video/video.o fs/fs.o keyboard/keyboard.o
 
 all:disk.img user
 user:user/init
-user/init:user/*.c user/*.S
+user/init:user/*.c user/libc/*.c user/libc/*.S
 	@make -C user/ all
 
 disk.img:boot/boot.bin kernel.bin tools/build tools/mkfs.minix
