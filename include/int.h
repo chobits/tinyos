@@ -43,6 +43,17 @@
 #define INTNO_MAX	INTNO_SYSCALL
 #define IDT_SIZE	256
 
+#define IRQ_TIMER	0	/* Programmable Interrupt Timer Interrupt */
+#define IRQ_KEYBOARD	1	/* Keyboard Interrupt */
+#define IRQ_CASCADE	2	/* Cascade (used internally by the two PICs. never raised) */
+#define IRQ_COM2	3	/* COM2 (if enabled) */
+#define IRQ_COM1	4	/* COM1 (if enabled) */
+#define IRQ_FLOPPY	6	/* Floppy Disk */
+#define IRQ_SPURIOUS	7	/* Unreliable "spurious" interrupt (usually) */
+#define IRQ_CMOS	8	/* CMOS real-time clock (if enabled) */
+#define IRQ_PRI_DISK	14	/* Primary ATA Hard Disk */
+#define IRQ_SEC_DISK	15	/* Secondary ATA Hard Disk */
+
 #ifndef __ASM__
 #include <types.h>
 
