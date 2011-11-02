@@ -86,7 +86,6 @@ refork:
 	while (1) ;
 #endif
 
-#define TEST_OPEN_CLOSE
 #ifdef TEST_OPEN_CLOSE
 	int fd;
 	char buf[4];
@@ -120,6 +119,15 @@ err:
 	while (1) ;
 #endif
 
+#define TEST_GETS
+#ifdef TEST_GETS
+	char buf[64];
+	int size;
+	while ((size = gets(buf, 64)) > 0)
+		printf("[%d]%*s", size, size, buf);
+	printf("ERROR gets return %d\n", size);
+	while (1) ;
+#endif
 	printf("I'm process %d\n", getpid());
 	while (1) ;
 	return 0;

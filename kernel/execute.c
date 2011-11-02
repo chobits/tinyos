@@ -100,8 +100,8 @@ int execute_context(struct task *task, struct elf *elf, struct execute_args *ear
 	reg->gs = USER_DATA_SEG;
 	reg->ss = USER_DATA_SEG;
 	reg->cs = USER_CODE_SEG;
-	/* IOPL:0, (IF) */
-	reg->eflags = EFLAGS_BIT1;
+	/* IOPL:0, IF */
+	reg->eflags = EFLAGS_BIT1 | EFLAGS_IF;
 	/* user code and data environment */
 	reg->eip = elf->e_entry;
 	reg->esp = USER_STACK + eargs->stackoff;
@@ -184,6 +184,8 @@ int sys_execute(char *path, int argc, char **argv)
 {
 	struct elf elf;
 	struct file *file;
+	if (argc <= 0)
+		goto err_out;
 	/* open file */
 	if (!(file = file_open(path, 0)))
 		goto err_out;

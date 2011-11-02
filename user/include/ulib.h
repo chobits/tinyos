@@ -4,6 +4,7 @@
 #include <types.h>
 
 extern int printf(char *, ...);
+extern int gets(char *, int);
 extern int fork(void);
 extern void yield(void);
 extern int getpid(void);

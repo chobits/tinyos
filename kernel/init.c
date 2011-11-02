@@ -9,10 +9,13 @@ void int_init(void);
 void block_init(void);
 void task_init(void);
 void fs_init(void);
+void keyboard_init(void);
 void load_first_program(char *, int, char **);
 
 void kidle(void)
 {
+	printk("Init is idle\n");
+	asm volatile ("sti" ::);
 	while (1)
 		schedule();
 }
@@ -35,6 +38,7 @@ void init(void)
 	task_init();
 	block_init();
 	fs_init();
+	keyboard_init();
 	load_init();
 	kidle();
 }

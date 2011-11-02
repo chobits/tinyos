@@ -48,9 +48,9 @@ struct task {
 };
 
 #define TASK_RUNNABLE		1
-#define TASK_INTERRUPTABLE	2
-#define TASK_UNINTERRUPTABLE	3
-#define TASK_DYING		4
+#define TASK_SLEEP		2
+#define TASK_DYING		3
+
 #define for_each_task(t)	list_for_each_entry(t, &task_list, list)
 
 #define PIDS		128	/* process id range: [0, PIDS - 1] */

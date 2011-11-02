@@ -1,9 +1,9 @@
-#include <print.h>
 #include <task.h>
 #include <x86.h>
 #include <mm.h>
 
-extern struct list_head task_list;
+struct list_head task_list;
+struct task init_task;
 static struct task dummy_task;	/* for switching to the same ctack */
 
 /* It is safe to switch to current task, which is not recommended. */
@@ -46,10 +46,13 @@ void schedule(void)
 		if (!next || task->priority > next->priority)
 			next = task;
 	}
-	if (next) {
-		next->priority--;
-		task_switch(next);
+	if (!next) {
+		if (ctask == &init_task)
+			return;
+		next = &init_task;
 	}
+	next->priority--;
+	task_switch(next);
 }
 
 void sys_yield(void)

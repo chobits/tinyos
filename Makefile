@@ -16,7 +16,7 @@ export Q LD AS CC NM OBJDUMP OBJCOPY CFLAGS
 
 KLINK	= -T kernel.ld
 
-OBJS	= kernel/kernel.o mm/mm.o video/video.o fs/fs.o
+OBJS	= kernel/kernel.o mm/mm.o video/video.o fs/fs.o keyboard/keyboard.o
 
 all:disk.img user
 user:user/init
@@ -47,6 +47,9 @@ kernel.elf:$(OBJS)
 
 video/video.o:video/*.c
 	@make -C video/
+
+keyboard/keyboard.o:keyboard/*.c
+	@make -C keyboard/
 
 fs/fs.o:fs/*.c fs/minix/*.c
 	@make -C fs/

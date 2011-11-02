@@ -23,6 +23,11 @@ int usys_puts(char *str)
 	return usyscall(SYS_puts, (u32)str, 0, 0, 0, 0);
 }
 
+int usys_gets(char *str, int size)
+{
+	return usyscall(SYS_gets, (u32)str, (u32)size, 0, 0, 0);
+}
+
 int usys_open(char *path, unsigned int flags)
 {
 	return usyscall(SYS_open, (u32)path, (u32)flags, 0, 0, 0);

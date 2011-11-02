@@ -37,7 +37,7 @@ static void free_pid(int pid)
 }
 
 struct task *ctask;		/* current task */
-static struct task init_task;
+struct task init_task;
 static struct slab *task_slab;
 LIST_HEAD(task_list);		/* all tasks */
 
@@ -94,7 +94,7 @@ struct task *alloc_task(void)
 	list_add(&task->list, &task_list);
 	list_init(&task->sibling);
 	list_init(&task->childs);
-	task->state = TASK_UNINTERRUPTABLE;
+	task->state = TASK_SLEEP;
 	return task;
 
 err_free_pid:
@@ -116,6 +116,8 @@ void task_init(void)
 	/* init first task */
 	init_task.kstacktop = kern_stack_top;
 	init_task.pid = alloc_pid();
+	init_task.us.pgdir = kern_page_dir;
+	init_task.state = TASK_RUNNABLE;
 	if (init_task.pid != 0)
 		panic("init task get error pid: %d", init_task.pid);
 	ctask = &init_task;

@@ -6,6 +6,7 @@
 #define __sys_call_entry(name) [SYS_##name] = (syscall_t)sys_##name
 static syscall_t sys_call_table[SYS_CALL_MAX + 1] = {
 	__sys_call_entry(puts),
+	__sys_call_entry(gets),
 	__sys_call_entry(open),
 	__sys_call_entry(read),
 	__sys_call_entry(write),

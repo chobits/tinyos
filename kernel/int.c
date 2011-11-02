@@ -1,47 +1,10 @@
+#include <print.h>
+#include <8259A.h>
 #include <int.h>
 #include <x86.h>
 #include <mm.h>
-#include <print.h>
 
-#define ICW1_BIT4	0x10	/* must be set */
-#define ICW1_LTIM	0x08	/* level triggered mode (0 for edge) */
-#define ICW1_ADI	0x04	/* call address interval:4 (0 for 8) */
-#define ICW1_SNGL	0x02	/* sigle (0 for cascade mode)*/
-#define ICW1_IC4	0x01	/* IC4 is needed */
-
-#define ICW1		(ICW1_BIT4 | ICW1_IC4)	/* edge cascade 8interval IC4 */
-#define ICW3_MASTER	0x04	/* slave PIC is cascaded on IRQ2 */
-#define ICW3_SLAVE	0x02	/* ?? */
-
-#define ICW4_uPM	0x01	/* 8086/8088 mode(0 for MCS-80/85 mode) */
-#define ICW4_AEOI	0x02	/* auto EOI (0 for normal EOI) */
-#define ICW4_MS		0x04	/* X non buffer|0 buffer slave|1 buffer master */
-#define ICW4_BUF	0x08	/* 0 non buffer|1 buffer slave|1 buffer master */
-#define ICW4_SFNM	0x10	/* special fully nested mode(non nested) */
-
-#define ICW4_MASTER	(ICW4_uPM)	/* non-buffer 8086 NEOI non-nested */
-#define ICW4_SLAVE	(ICW4_uPM)	/* non-buffer 8086 NEOI non-nested */
-
-#define REG_PIC1	0x20
-#define REG_PIC2	0xa0
-#define PIC_A0		0x01	/* A0 bit */
-#define PIC_MASTER_CMD	REG_PIC1		/* master command register */
-#define PIC_MASTER_DATA	(REG_PIC1 | PIC_A0)	/* master data register */
-#define PIC_SLAVE_CMD	REG_PIC2		/* slave command register */
-#define PIC_SLAVE_DATA	(REG_PIC2 | PIC_A0)	/* slave data register */
-#define PIC_MASTER_IMR	PIC_MASTER_DATA		/* interrupt mask register */
-#define PIC_SLAVE_IMR	PIC_SLAVE_DATA		/* interrupt mask register */
-
-#define OCW2_R		0x80
-#define OCW2_SL		0x40
-#define OCW2_EOI	0x20
-#define OCW2_L2		0x04
-#define OCW2_L1		0x02
-#define OCW2_L0		0x01
-
-#define EOI		0x20		/* non-specific EOI command */
-
-void init_8259A(void)
+static void init_8259A(void)
 {
 	/* ICW1: */
 	outb_p(PIC_MASTER_CMD, ICW1);
@@ -91,6 +54,7 @@ void unmask_8259A(int irq)
 
 extern void do_page_fault(struct regs *);
 extern void do_sys_call(struct regs *);
+extern void keyboard_interrupt(struct regs *);
 
 /* All traps, faults, fatals and hardware interrupt handler */
 void interrupt_handler(int nr, struct regs *reg)
@@ -99,7 +63,11 @@ void interrupt_handler(int nr, struct regs *reg)
 		dump_stack(reg);
 		panic("Unknown interrupt %d", nr);
 	}
+
 	switch (nr) {
+	case INTNO_IRQ1:
+		keyboard_interrupt(reg);
+		break;
 	case INTNO_PF:
 		do_page_fault(reg);
 		break;
@@ -113,6 +81,11 @@ void interrupt_handler(int nr, struct regs *reg)
 		panic("interrupt unfinished");
 		break;
 	}
+
+	/* send end of interrupt signal to PIC chip (not autoeoi mode) */
+	if (nr >= INTNO_IRQ0 && nr <= INTNO_IRQ15)
+		EOI_8259A(nr - INTNO_IRQ0);
+
 }
 
 static struct desc idt[IDT_SIZE];
@@ -145,6 +118,7 @@ void int_init(void)
 	set_trap_gate(INTNO_MC, mc_entry);
 	set_trap_gate(INTNO_XM, xm_entry);
 	/* Vector 20-31 are reserved */
+	/* Interrupt Gate ensures there is no recursion interrupt. */
 	set_int_gate(INTNO_IRQ0, irq0_entry);
 	set_int_gate(INTNO_IRQ1, irq1_entry);
 	set_int_gate(INTNO_IRQ2, irq2_entry);
@@ -167,5 +141,6 @@ void int_init(void)
 	lidt((u32)&idt_desc);
 
 	/* init interrupt processor */
-//	init_8259A();
+	init_8259A();
+	printk("interrupt/trap/fault init!\n");
 }

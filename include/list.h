@@ -12,7 +12,7 @@ struct list_head {
 	struct list_head *next;
 };
 
-#define LIST_HEAD(name) struct list_head name = INIT_LIST_HEAD(name);
+#define LIST_HEAD(name) struct list_head name = INIT_LIST_HEAD(name)
 #define INIT_LIST_HEAD(head) { &(head), &(head) }
 #define HOLE_LIST ((struct list_head *)0xffffffff)
 #define list_empty(l) ((l)->next == (l))

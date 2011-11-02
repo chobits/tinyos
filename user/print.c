@@ -110,3 +110,9 @@ int printf(char *format, ...)
 	va_end(args);
 	return usys_puts(ustrbuf);
 }
+
+int gets(char *buf, int size)
+{
+	return usys_gets(buf, size);
+}
+
