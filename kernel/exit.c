@@ -77,7 +77,6 @@ void task_wait_exit(struct task *parent, struct task *task)
 	free_task(task);
 }
 
-//void zone_debug(int type);
 int task_wait(struct task *parent, int *status)
 {
 	struct task *task;
@@ -94,7 +93,6 @@ int task_wait(struct task *parent, int *status)
 		if (status)
 			*status = task->retval;
 		task_wait_exit(parent, task);
-//		zone_debug(1);
 	}
 	return cpid;
 }
