@@ -94,8 +94,14 @@ struct inode *inode_path_lookup(char *path)
 	char *basename;
 	int len;
 	dir = path_lookup_dir(path, &basename, &len);
-	if (!dir || len == 0)
+	if (!dir)
 		return NULL;
+	if (len == 0) {
+		/* for "/" ,"//", "///", ... */
+		if (dir == ctask->fs.root_dir)
+			return get_inode_ref(dir);
+		return NULL;
+	}
 	return inode_sub_lookup(dir, basename, len);
 }
 
