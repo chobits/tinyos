@@ -15,6 +15,7 @@ u32 usyscall(int num, u32 a1, u32 a2, u32 a3, u32 a4, u32 a5)
 		  "D"(a4),
 		  "S"(a5)
 		: "cc", "memory");
+	/* Returning from SYS_fork, it will trigger the page fault here! */
 	return ret;
 }
 
@@ -41,6 +42,11 @@ int usys_close(int fd)
 int usys_fsync(int fd)
 {
 	return usyscall(SYS_fsync, (u32)fd, 0, 0, 0, 0);
+}
+
+int usys_fstat(int fd, struct file_stat *stat)
+{
+	return usyscall(SYS_fstat, (u32)fd, (u32)stat, 0, 0, 0);
 }
 
 int usys_read(int fd, char *buf, size_t size)

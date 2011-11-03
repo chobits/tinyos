@@ -1,5 +1,6 @@
 #include <inode.h>
 #include <print.h>
+#include <fs.h>
 
 struct inode *get_inode_ref(struct inode *inode)
 {
@@ -57,3 +58,9 @@ void inode_sync(struct inode *inode)
 		inode->i_ops->sync(inode);
 }
 
+void inode_stat(struct inode *inode, struct file_stat *stat)
+{
+	stat->size = inode->i_size;
+	stat->inode = inode->i_ino;
+	stat->mode = inode->i_mode;
+}

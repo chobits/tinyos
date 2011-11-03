@@ -30,3 +30,8 @@ int fsync(int fd)
 {
 	return usys_fsync(fd);
 }
+
+int fstat(int fd, struct file_stat *stat)
+{
+	return usys_fstat(fd, stat);
+}

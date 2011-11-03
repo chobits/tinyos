@@ -25,7 +25,7 @@ struct file *get_file(struct file *file)
 	return file;
 }
 
-static struct file *alloc_file(struct inode *inode, unsigned int mode)
+struct file *alloc_file(struct inode *inode, unsigned int mode)
 {
 	struct file *file = slab_alloc_object(file_slab);
 	memset(file, 0x0, sizeof(file));
@@ -114,5 +114,17 @@ void file_sync(struct file *file)
 	if (file->f_inode)
 		inode_sync(file->f_inode);
 	put_file(file);
+}
+
+int file_stat(struct file *file, struct file_stat *stat)
+{
+	int r = -1;
+	get_file(file);
+	if (file->f_inode) {
+		inode_stat(file->f_inode, stat);
+		r = 0;
+	}
+	put_file(file);
+	return r;
 }
 

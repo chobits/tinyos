@@ -2,6 +2,7 @@
 #define __SYSCALL_H
 
 #include <types.h>
+struct file_stat;
 
 #define INTNO_SYSCALL	48
 
@@ -11,14 +12,15 @@
 #define SYS_read	4
 #define SYS_write	5
 #define SYS_fsync	6
-#define SYS_close	7
-#define SYS_lseek	8
-#define SYS_fork	9
-#define SYS_yield	10
-#define SYS_getpid	11
-#define SYS_exit	12
-#define SYS_wait	13
-#define SYS_execute	14
+#define SYS_fstat	7
+#define SYS_close	8
+#define SYS_lseek	9
+#define SYS_fork	10
+#define SYS_yield	11
+#define SYS_getpid	12
+#define SYS_exit	13
+#define SYS_wait	14
+#define SYS_execute	15
 
 extern int usys_puts(char *);
 extern int usys_gets(char *, int);
@@ -26,6 +28,7 @@ extern int usys_open(char *, unsigned int);
 extern int usys_read(int, char *, unsigned int);
 extern int usys_write(int, char *, unsigned int);
 extern int usys_fsync(int);
+extern int usys_fstat(int, struct file_stat *);
 extern int usys_close(int);
 extern off_t usys_lseek(int, off_t, unsigned int);
 extern int usys_fork(void);
