@@ -114,7 +114,7 @@ void minix_free_inode(struct inode *inode)
 
 void minix_put_inode(struct inode *inode)
 {
-	inode->i_refcnt--;	
+	inode->i_refcnt--;
 	if (inode->i_refcnt == 0) {
 		/* Dont synchronize inode or datas, only cache the inode. */
 	} else if (inode->i_refcnt < 0) {
@@ -207,7 +207,8 @@ struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len)
 		n = min(entries - i, MINIX_DENTRIES_PER_BLOCK);
 		for (k = 0; k < n; k++, de++) {
 			/* strncmp skips deleted entry automatically. */
-			if (!strncmp(de->d_name, base, len))
+			if (strlen(de->d_name) == len &&
+				!strncmp(de->d_name, base, len))
 				goto found;
 		}
 		put_block(block);
