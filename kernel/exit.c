@@ -46,7 +46,7 @@ void task_exit(struct task *task)
 	task->state = TASK_DYING;
 	exit_task_fs(task);
 	exit_task_userspace(task);
-	/* 
+	/*
 	 * Why cannot we free total resources of task?
 	 * (Why do we need parent to free task?)
 	 * Now it is in current task context, the kernel
@@ -60,6 +60,7 @@ void sys_exit(int status)
 	task_exit(ctask);
 	/* No return */
 	schedule();
+	panic("task exiting fails");
 }
 
 void task_wait_exit(struct task *parent, struct task *task)
@@ -71,7 +72,6 @@ void task_wait_exit(struct task *parent, struct task *task)
 		list_for_each_entry(child, &task->childs, sibling)
 			child->parent = parent;
 		list_merge_tail(&parent->childs, &task->childs);
-		
 	}
 	put_free_page(task->us.pgdir);
 	free_task(task);
