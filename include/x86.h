@@ -87,6 +87,16 @@
 #include <types.h>
 #include <compile.h>
 
+static _inline void cli(void)
+{
+	asm volatile ("cli" ::);
+}
+
+static _inline void sti(void)
+{
+	asm volatile ("sti" ::);
+}
+
 static _inline u8 inb(u16 port)
 {
 	u8 __value;

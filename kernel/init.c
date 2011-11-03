@@ -15,7 +15,8 @@ void load_first_program(char *, int, char **);
 void kidle(void)
 {
 	printk("Init is idle\n");
-	asm volatile ("sti" ::);
+	/* Open interrupt */
+	sti();
 	while (1)
 		schedule();
 }

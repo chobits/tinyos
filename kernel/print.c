@@ -124,6 +124,8 @@ void panic(char *format, ...)
 	i = vsprintf(kstrbuf + PANIC_PROMPT_LEN, format, args);
 	va_end(args);
 	text_nputs(kstrbuf, i + PANIC_PROMPT_LEN);
+	/* Close interrupt */
+	cli();
 	while (1)
 		hlt();
 }
