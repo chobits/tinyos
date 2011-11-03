@@ -4,22 +4,12 @@
 #include <int.h>
 #include <x86.h>
 
-struct key_desc {
-	unsigned int	esc:1,
-			capslock:1,
-			shift:1,
-			ctrl:1,
-			alt:1,
-			start:1,
-			pause:1;
-};
-
-static struct key_desc keys;
-
 extern unsigned char scancode_types[];
 extern char scancode_ascii[];
 extern char scancode_shift_ascii[];
 void key_putc(char);
+
+static struct key_desc keys;
 
 void keyboard_interrupt(struct regs *reg)
 {
@@ -86,7 +76,9 @@ void keyboard_interrupt(struct regs *reg)
 			c = scancode_shift_ascii[scan_code];
 		else
 			c = scancode_ascii[scan_code];
-		text_putc(c);
+		/* EOF */
+		if ((c == 'd' || c == 'D') && keys.ctrl)
+			c = '\0';
 		key_putc(c);
 	}
 }

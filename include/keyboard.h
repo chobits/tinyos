@@ -1,7 +1,17 @@
 #ifndef __KEYBOARD_H
 #define __KEYBOARD_H
 
-#define KEY_BUF_SIZE	128
+struct key_desc {
+	unsigned int	esc:1,
+			capslock:1,
+			shift:1,
+			ctrl:1,
+			alt:1,
+			start:1,
+			pause:1;
+};
+
+#define KEY_BUF_SIZE	512
 
 /* This key map is from bochs us-keymap */
 #define KEY_NONE	0x00
