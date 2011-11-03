@@ -6,6 +6,7 @@
 struct dirty_block_cache;
 struct block;
 struct inode;
+struct file_stat;
 
 struct inode_operations {
 	int (*read)(struct inode *, char *, size_t, off_t);
@@ -35,6 +36,7 @@ extern int inode_write(struct inode *inode, char *buf, size_t size, off_t off);
 extern struct inode *inode_open(char *path);
 extern void inode_close(struct inode *inode);
 extern void inode_sync(struct inode *inode);
+extern void inode_stat(struct inode *, struct file_stat *);
 /* dirty block cache */
 extern void inode_sync_dbc(struct inode *inode);
 extern void inode_free_dbc(struct inode *inode);

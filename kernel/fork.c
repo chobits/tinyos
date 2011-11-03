@@ -1,6 +1,8 @@
 #include <paging.h>
 #include <string.h>
 #include <print.h>
+#include <inode.h>
+#include <file.h>
 #include <page.h>
 #include <task.h>
 #include <slab.h>
@@ -74,10 +76,24 @@ void clone_task_userspace(struct task *parent, struct task *child)
 	flush_tlb();
 }
 
+void clone_task_fdtable(struct fd_table *p, struct fd_table *c)
+{
+	int i;
+	for (i = 0; i < FD_SIZE; i++) {
+		if (!p->files[i])
+			continue;
+		c->files[i] = alloc_file(p->files[i]->f_inode, p->files[i]->f_mode);
+		if (!c->files[i])
+			panic("Cannot alloc file");
+		get_inode_ref(p->files[i]->f_inode);
+	}
+}
+
 void clone_task_fs(struct task *parent, struct task *child)
 {
-	child->current_dir = parent->current_dir;
-	child->root_dir = parent->root_dir;
+	child->fs.current_dir = get_inode_ref(parent->fs.current_dir);
+	child->fs.root_dir = get_inode_ref(parent->fs.root_dir);
+	clone_task_fdtable(&parent->fs.ft, &child->fs.ft);
 }
 
 void clone_task_context(struct regs *preg, struct task *child)

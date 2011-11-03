@@ -1,9 +1,10 @@
 #include <paging.h>
 #include <string.h>
 #include <print.h>
+#include <inode.h>
+#include <file.h>
 #include <page.h>
 #include <task.h>
-#include <file.h>
 #include <elf.h>
 #include <fs.h>
 #include <x86.h>
@@ -168,12 +169,19 @@ void execute_arguments(int argc, char **argv, struct execute_args *eargs)
 	eargs->stackoff = PGOFFSET(p);
 }
 
+void execute_fs(struct task *task)
+{
+	/* close orignal fd table */
+	ft_close(&task->fs.ft);
+}
+
 void task_execute(struct task *task, struct file *file, struct elf *elf,
 		int argc, char **argv)
 {
 	struct execute_args eargs;
 	execute_arguments(argc, argv, &eargs);
 	execute_userspace(task, file, elf);
+	execute_fs(task);
 	execute_context(task, elf, &eargs);
 	/* goto new execution */
 	file_close(file);
@@ -218,14 +226,14 @@ int create_userspace(struct task *t, struct file *file, struct elf *elf)
 	return 0;
 }
 
-struct task *create_task(void)
+static struct task *create_task(void)
 {
 	struct task *task;
 	task = alloc_task();
 	if (!task || task->pid != 1)
 		panic("alloc task error");
-	task->current_dir = ctask->current_dir;
-	task->root_dir = ctask->root_dir;
+	task->fs.current_dir = get_inode_ref(ctask->fs.current_dir);
+	task->fs.root_dir = get_inode_ref(ctask->fs.root_dir);
 	return task;
 }
 

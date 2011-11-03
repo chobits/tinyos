@@ -1,5 +1,5 @@
 /*
- * This file has definitions for some important minix filesystem 
+ * This file has definitions for some important minix filesystem
  * structures etc.
  */
 #ifndef __MINIX_FS_H
@@ -76,21 +76,6 @@ struct minix_inode {
 	struct block *m_iblock;		/* block containing d_inode */
 } __attribute__((packed));
 
-/*
-struct inode {
-	unsigned long i_atime;
-	unsigned long i_ctime;
-	unsigned short i_dev;
-	unsigned short i_num;
-	unsigned short i_count;
-	unsigned char i_lock;
-	unsigned char i_dirt;
-	unsigned char i_pipe;
-	unsigned char i_mount;
-	unsigned char i_seek;
-	unsigned char i_update;
-} __attribute__((packed));
-*/
 /* super_block in device(disk) */
 struct minix_d_super_block {
 	unsigned short s_ninodes;

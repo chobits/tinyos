@@ -29,18 +29,22 @@ struct userspace {
 	pde_t *pgdir;
 };
 
+struct fsinfo {
+	struct fd_table ft;
+	struct inode *current_dir;
+	struct inode *root_dir;
+};
+
 struct task {
 	struct list_head list;		/* all task list entry */
 	struct list_head sibling;	/* listed in parent */
 	struct list_head childs;	/* all childs */
 	struct task *parent;
-	struct fd_table ft;
-	struct inode *current_dir;
-	struct inode *root_dir;
 	void *kstacktop;		/* kernel-mode stack top of task */
-	struct context con;
+	struct fsinfo fs;		/* association with file system */
+	struct context con;		/* association with task switching */
+	struct userspace us;		/* association with usermode */
 	struct regs *reg;
-	struct userspace us;
 	unsigned int state;
 	int priority;
 	int pid;
@@ -50,6 +54,7 @@ struct task {
 #define TASK_RUNNABLE		1
 #define TASK_SLEEP		2
 #define TASK_DYING		3
+#define TASK_WAITCHILD		4
 
 #define for_each_task(t)	list_for_each_entry(t, &task_list, list)
 

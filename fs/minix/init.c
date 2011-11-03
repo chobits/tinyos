@@ -55,10 +55,10 @@ void minix_fs_init(void)
 	
 	/* init root dir */
 	minix_inode_init();
-	ctask->root_dir = minix_get_inode(&minix_sb, MINIX_ROOT_INO);
-	if (!ctask->root_dir)
+	ctask->fs.root_dir = minix_get_inode(&minix_sb, MINIX_ROOT_INO);
+	if (!ctask->fs.root_dir)
 		panic("Cannot get minix root dir");
-	ctask->current_dir = ctask->root_dir;
+	ctask->fs.current_dir = get_inode_ref(ctask->fs.root_dir);
 	/* debug inode */
 //	minix_fs_test();
 }

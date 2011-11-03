@@ -27,7 +27,7 @@ void minix_fs_test(void)
 
 	/* "/" */
 	printk("Root dir:\n");
-	debug_inode(i2mdi(ctask->root_dir));
+	debug_inode(i2mdi(ctask->fs.root_dir));
 
 	/* "/b" */
 	file = file_open(f, 0777);

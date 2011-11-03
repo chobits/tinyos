@@ -23,10 +23,10 @@ void sleep_on(struct wait_queue *wq)
 	struct wait_entry wait;
 	/* init wait */
 	wait.func = &default_wake_up;
-	ctask->state = TASK_SLEEP;
 	wait.task = ctask;
 	/* add to wait queue */
 	wait_enqueue(wq, &wait);
+	ctask->state = TASK_SLEEP;
 	schedule();
 }
 

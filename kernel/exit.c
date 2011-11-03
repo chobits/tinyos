@@ -1,4 +1,5 @@
 #include <print.h>
+#include <inode.h>
 #include <task.h>
 #include <page.h>
 #include <mm.h>
@@ -36,7 +37,11 @@ void exit_task_userspace(struct task *task)
 
 void exit_task_fs(struct task *task)
 {
-
+	inode_close(task->fs.root_dir);
+	task->fs.root_dir = NULL;
+	inode_close(task->fs.current_dir);
+	task->fs.current_dir = NULL;
+	ft_close(&task->fs.ft);
 }
 
 /* destroy task resources and yield CPU */
@@ -46,11 +51,13 @@ void task_exit(struct task *task)
 	task->state = TASK_DYING;
 	exit_task_fs(task);
 	exit_task_userspace(task);
+	/* wake up my parent */
+	if (task->parent->state == TASK_WAITCHILD)
+		task->parent->state = TASK_RUNNABLE;
 	/*
 	 * Why cannot we free total resources of task?
 	 * (Why do we need parent to free task?)
-	 * Now it is in current task context, the kernel
-	 * stack is the exiting task resouce!
+	 * The current kernel stack is resouce of exiting task!
 	 */
 }
 
@@ -82,18 +89,24 @@ int task_wait(struct task *parent, int *status)
 	struct task *task;
 	int cpid = -1;
 
-	list_for_each_entry(task, &parent->childs, sibling) {
-		if (task->state == TASK_DYING) {
-			cpid = task->pid;
-			break;
-		}
+	if (list_empty(&parent->childs))
+		return -1;
 
+	while (1) {
+		list_for_each_entry(task, &parent->childs, sibling) {
+			if (task->state == TASK_DYING) {
+				cpid = task->pid;
+				goto found;
+			}
+		}
+		/* wait for child exiting */
+		ctask->state = TASK_WAITCHILD;
+		schedule();
 	}
-	if (cpid > 0) {
-		if (status)
-			*status = task->retval;
-		task_wait_exit(parent, task);
-	}
+found:
+	if (status)
+		*status = task->retval;
+	task_wait_exit(parent, task);
 	return cpid;
 }
 

@@ -2,19 +2,28 @@
 #include <task.h>
 #include <print.h>
 
+void ft_close(struct fd_table *ft)
+{
+	int i;
+	for (i = 0; i < FD_SIZE; i++) {
+		if (ft->files[i])
+			file_close(ft->files[i]);
+	}
+}
+
 static void fd_save_file(int fd, struct file *file)
 {
-	ctask->ft.files[fd] = file;
+	ctask->fs.ft.files[fd] = file;
 }
 
 static void fd_free(int fd)
 {
-	ctask->ft.files[fd] = NULL;
+	ctask->fs.ft.files[fd] = NULL;
 }
 
 static int fd_alloc(void)
 {
-	struct fd_table *ft = &ctask->ft;
+	struct fd_table *ft = &ctask->fs.ft;
 	int fd;
 	for (fd = 0; fd < FD_SIZE; fd++)
 		if (!ft->files[fd])
@@ -28,8 +37,8 @@ struct file *fd_put_file(unsigned int fd)
 {
 	struct file *file = NULL;
 	if (fd < FD_SIZE) {
-		file = ctask->ft.files[fd];
-		ctask->ft.files[fd] = NULL;
+		file = ctask->fs.ft.files[fd];
+		ctask->fs.ft.files[fd] = NULL;
 	}
 	return file;
 }
@@ -38,7 +47,7 @@ struct file *fd_get_file(unsigned int fd)
 {
 	struct file *file = NULL;
 	if (fd < FD_SIZE) {
-		file = ctask->ft.files[fd];
+		file = ctask->fs.ft.files[fd];
 		if (file)
 			get_file(file);
 	}
@@ -108,6 +117,18 @@ int sys_fsync(int fd)
 	file_sync(file);
 	put_file(file);
 	return 0;
+}
+
+
+int sys_fstat(int fd, struct file_stat *stat)
+{
+	struct file *file = fd_get_file(fd);
+	int r = -1;
+	if (!file)
+		return -1;
+	r = file_stat(file, stat);
+	put_file(file);
+	return r;
 }
 
 int sys_close(int fd)

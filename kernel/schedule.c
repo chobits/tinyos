@@ -1,6 +1,7 @@
 #include <task.h>
 #include <x86.h>
 #include <mm.h>
+#include <print.h>
 
 struct list_head task_list;
 struct task init_task;
