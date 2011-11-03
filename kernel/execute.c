@@ -32,7 +32,7 @@ int map_userspace(struct userspace *us, struct proghdr *ph, struct file *file)
 	vmap_add(&us->vmap_root, ph->p_va, ph->p_memsz, ph->p_flags);
 #endif
 	if (file_lseek(file, ph->p_offset, SEEK_SET) != ph->p_offset)
-		return -1;
+		panic("file lseek");
 	rsize = 0;
 	perm = (ph->p_flags & ELF_PROG_FLAG_WRITE) ? (PTE_U | PTE_W) : PTE_U;
 	va = ph->p_va;
@@ -45,13 +45,13 @@ int map_userspace(struct userspace *us, struct proghdr *ph, struct file *file)
 		/* map */
 		page = map_page(us->pgdir, va - off, perm);
 		if (!page)
-			return -1;
+			panic("error: map page");
 		/* FIXME: associate page to vmap */
 		/* copy */
 		if (!(p = kva_page(page)))
 			panic("cannot be converted to kva");
 		if (file_read(file, p + off, sz) != sz)
-			return -1;
+			panic("file read");
 		rsize += sz;
 		va += sz;
 	}
@@ -59,7 +59,7 @@ int map_userspace(struct userspace *us, struct proghdr *ph, struct file *file)
 		if (!p) {
 			page = map_page(us->pgdir, va - off, perm);
 			if (!page)
-				return -1;
+				panic("error: map page");
 			if (!(p = kva_page(page)))
 				panic("cannot be converted to kva");
 		}
@@ -71,11 +71,13 @@ int map_userspace(struct userspace *us, struct proghdr *ph, struct file *file)
 		off = PGOFFSET(va);
 		sz = min(PGSIZE - off, ph->p_memsz - rsize);
 		page = map_page(us->pgdir, va - off, perm);
+		if (!(p = kva_page(page)))
+			panic("cannot be converted to kva");
 		memset(p, 0x0, sz);
 		rsize += sz;
 	}
-	if (sz < PGSIZE)
-		memset(p + sz, 0x0, PGSIZE - sz);
+	if (off + sz < PGSIZE)
+		memset(p + sz + off, 0x0, PGSIZE - sz - off);
 	return 0;
 }
 
@@ -144,9 +146,6 @@ void execute_arguments(int argc, char **argv, struct execute_args *eargs)
 	tmpargv = p;
 	eargs->stack = p;
 	p += PGSIZE - 16;	/* reserve 16 bytes for stack security */
-	/* assure NULL-terminal */
-	argv[argc] = NULL;
-	tmpargv[argc] = NULL;
 	/* copy arguments */
 	for (i = argc - 1; i >= 0 ; i--) {
 		len = strlen(argv[i]);
@@ -154,9 +153,11 @@ void execute_arguments(int argc, char **argv, struct execute_args *eargs)
 		strcpy(p, argv[i]);
 		tmpargv[i] = (char *)(USER_STACK + PGOFFSET(p));
 	}
+	tmpargv[argc] = NULL;	/* assure NULL-terminal */
 	/* copy pointers of arguments */
 	len = sizeof(char *) * (argc + 1);
 	p -= len;
+	p = ALIGN_DOWN(p, sizeof(char *));	/* alignment */
 	memcpy(p, tmpargv, len);
 	/* save @argv */
 	p -= sizeof(char **);
