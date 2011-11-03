@@ -128,3 +128,15 @@ int file_stat(struct file *file, struct file_stat *stat)
 	return r;
 }
 
+int file_chdir(struct file *file)
+{
+	int r = -1;
+	get_file(file);
+	if (file->f_inode) {
+		inode_chdir(file->f_inode);
+		r = 0;
+	}
+	put_file(file);
+	return r;
+}
+

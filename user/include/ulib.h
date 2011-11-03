@@ -17,10 +17,12 @@ extern int execute(char *, int, char **);
 extern int open(char *path, unsigned int mode);
 extern int close(int fd);
 extern off_t lseek(int fd, off_t offset, int whence);
-extern int write(unsigned int fd, char *buf, size_t size);
-extern int read(unsigned int fd, char *buf, size_t size);
-extern int fsync(unsigned int fd);
-extern int fstat(unsigned int fd, struct file_stat *);
+extern int write(int fd, char *buf, size_t size);
+extern int read(int fd, char *buf, size_t size);
+extern int fsync(int fd);
+extern int fstat(int fd, struct file_stat *);
+extern int fchdir(int fd);
+extern int chdir(char *);
 
 #define S_IFMT		00170000
 #define S_IFSOCK	0140000

@@ -139,3 +139,15 @@ int sys_close(int fd)
 	file_close(file);
 	return 0;
 }
+
+int sys_fchdir(int fd)
+{
+	struct file *file = fd_get_file(fd);
+	int r = -1;
+	if (!file)
+		return -1;
+	r = file_chdir(file);
+	put_file(file);
+	return r;
+}
+

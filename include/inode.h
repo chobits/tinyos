@@ -41,5 +41,6 @@ extern void inode_stat(struct inode *, struct file_stat *);
 extern void inode_sync_dbc(struct inode *inode);
 extern void inode_free_dbc(struct inode *inode);
 extern void inode_add_dbc(struct inode *inode, struct block *block);
+extern void inode_chdir(struct inode *inode);
 
 #endif	/* inode.h */

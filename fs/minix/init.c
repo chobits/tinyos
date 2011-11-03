@@ -52,9 +52,10 @@ void minix_fs_init(void)
 		panic("Cannot get minixfs super block");
 	/* check super block */
 	minix_check_super(minixsuper(&minix_sb));
-	
-	/* init root dir */
+
 	minix_inode_init();
+
+	/* init root dir */
 	ctask->fs.root_dir = minix_get_inode(&minix_sb, MINIX_ROOT_INO);
 	if (!ctask->fs.root_dir)
 		panic("Cannot get minix root dir");

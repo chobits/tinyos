@@ -30,5 +30,6 @@ extern void file_sync(struct file *file);
 extern int file_stat(struct file *file, struct file_stat *stat);
 extern void ft_close(struct fd_table *);
 extern struct file *alloc_file(struct inode *, unsigned int);
+extern int file_chdir(struct file *file);
 
 #endif	/* file.h */

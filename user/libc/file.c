@@ -1,4 +1,5 @@
 #include <syscall.h>
+#include <ulib.h>
 
 int open(char *path, unsigned int mode)
 {
@@ -10,12 +11,12 @@ int close(int fd)
 	return usys_close(fd);
 }
 
-int read(unsigned int fd, char *buf, size_t size)
+int read(int fd, char *buf, size_t size)
 {
 	return usys_read(fd, buf, size);
 }
 
-int write(unsigned int fd, char *buf, size_t size)
+int write(int fd, char *buf, size_t size)
 {
 	return usys_write(fd, buf, size);
 }
@@ -35,3 +36,31 @@ int fstat(int fd, struct file_stat *stat)
 {
 	return usys_fstat(fd, stat);
 }
+
+int fchdir(int fd)
+{
+	return usys_fchdir(fd);
+}
+
+int chdir(char *path)
+{
+	struct file_stat stat;
+	int fd, r;
+	fd = open(path, 0);
+	if (fd < 0) {
+		printf("Cannot open file: %s\n", path);
+		return -1;
+	}
+	if ((r = fstat(fd, &stat)) < 0) {
+		printf("Cannot get file stat: %s\n", path);
+	} else if (!S_ISDIR(stat.mode)) {
+		printf("%s is not dir\n", path);
+	} else {
+		r = fchdir(fd);
+		if (r < 0)
+			printf("error for fchdir\n");
+	}
+	close(fd);
+	return r;
+}
+

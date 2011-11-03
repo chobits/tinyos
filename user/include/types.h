@@ -51,4 +51,7 @@ typedef int off_t;
 #define MIN_INT ((~0U >> 1) + 1)
 #define NULL ((void *)0)
 
+#undef _inline
+#define _inline inline __attribute__((always_inline))
+
 #endif	/* types.h */

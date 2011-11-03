@@ -247,7 +247,7 @@ void load_first_program(char *path, int argc, char **argv)
 	/* read elf head and check it */
 	file = file_open(path, 0);
 	if (!file)
-		panic("Cannot open %s", path);
+		panic("Cannot open %s, try `make loaduser`", path);
 	if ((file_read(file, (char *)&elf, sizeof(elf))) != sizeof(elf))
 		panic("Cannot read elf header");
 	if (elf.e_magic != ELF_MAGIC)

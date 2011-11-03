@@ -94,3 +94,7 @@ int usys_execute(char *path, int argc, char **argv)
 	return usyscall(SYS_execute, (u32)path, (u32)argc, (u32)argv, 0, 0);
 }
 
+int usys_fchdir(int fd)
+{
+	return usyscall(SYS_fchdir, (u32)fd, 0, 0, 0, 0);
+}

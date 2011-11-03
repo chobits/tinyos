@@ -1,5 +1,6 @@
 #include <inode.h>
 #include <print.h>
+#include <task.h>
 #include <fs.h>
 
 struct inode *get_inode_ref(struct inode *inode)
@@ -64,3 +65,13 @@ void inode_stat(struct inode *inode, struct file_stat *stat)
 	stat->inode = inode->i_ino;
 	stat->mode = inode->i_mode;
 }
+
+void inode_chdir(struct inode *inode)
+{
+	struct inode *old;
+	old = ctask->fs.current_dir;
+	ctask->fs.current_dir = get_inode_ref(inode);
+	if (old)
+		inode_close(old);
+}
+

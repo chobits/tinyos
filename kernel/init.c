@@ -14,7 +14,7 @@ void load_first_program(char *, int, char **);
 
 void kidle(void)
 {
-	printk("Init is idle\n");
+	printk("Kernel is idle now\n\n");
 	/* Open interrupt */
 	sti();
 	while (1)

@@ -21,6 +21,7 @@ struct file_stat;
 #define SYS_exit	13
 #define SYS_wait	14
 #define SYS_execute	15
+#define SYS_fchdir	16
 
 extern int usys_puts(char *);
 extern int usys_gets(char *, int);
@@ -37,5 +38,6 @@ extern int usys_getpid(void);
 extern void usys_exit(int);
 extern int usys_wait(int *);
 extern int usys_execute(char *, int, char **);
+extern int usys_fchdir(int);
 
 #endif	/* syscall.h */

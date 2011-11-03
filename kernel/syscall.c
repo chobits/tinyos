@@ -20,6 +20,7 @@ static syscall_t sys_call_table[SYS_CALL_MAX + 1] = {
 	__sys_call_entry(exit),
 	__sys_call_entry(wait),
 	__sys_call_entry(execute),
+	__sys_call_entry(fchdir),
 };
 
 void do_sys_call(struct regs *reg)
