@@ -81,6 +81,8 @@ void free_pages(struct page *page, int order)
 		printk("Free pages error\n");
 		return;
 	}
+	if (page->pg_refcnt || page->pg_cowshare)
+		panic("Free in-use pages");
 	free_zone_pages(&zones[page->pg_zone], page, order);
 }
 

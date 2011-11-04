@@ -63,7 +63,7 @@ struct ldt common_ldt;	/* Not used */
 void free_task(struct task *task)
 {
 	list_del(&task->list);
-	put_free_page(task->kstacktop - PGSIZE);	
+	put_free_page(task->kstacktop - PGSIZE);
 	free_pid(task->pid);
 	slab_free_object(task_slab, task);
 }

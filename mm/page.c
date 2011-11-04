@@ -20,9 +20,11 @@ void hold_page(struct page *page)
 void free_page(struct page *p)
 {
 	p->pg_refcnt--;
-	if (p->pg_refcnt == 0)
+	if (p->pg_refcnt == 0) {
+		if (p->pg_cowshare)
+			panic("alloc page with cow share %d", p->pg_cowshare);
 		free_pages(p, 0);
-	else if (p->pg_refcnt < 0)
+	} else if (p->pg_refcnt < 0)
 		panic("Free free page(%d)\n", p->pg_refcnt);
 }
 
@@ -37,6 +39,8 @@ void *get_free_page(void)
 	struct page *p = alloc_pages(PG_ZONE_NOR, 0);
 	if (!p)
 		return NULL;
+	if (p->pg_cowshare)
+		panic("alloc page with cow share %d", p->pg_cowshare);
 	p->pg_refcnt = 1;
 	return (void *)PG2VADDR(p);
 }
@@ -46,6 +50,8 @@ void *get_free_page_pa(void)
 	struct page *p = alloc_pages(PG_ZONE_NOR, 0);
 	if (!p)
 		return NULL;
+	if (p->pg_cowshare)
+		panic("alloc page with cow share %d", p->pg_cowshare);
 	p->pg_refcnt = 1;
 	return (void *)PG2ADDR(p);
 }

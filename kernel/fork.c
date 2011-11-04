@@ -40,6 +40,8 @@ void clone_page_table(pde_t *p, pde_t *c)
 				*ppte &= ~PTE_W;
 				*ppte |= PTE_COW;
 			}
+			if (*ppte & PTE_W)
+				panic("Error for write flag");
 			page->pg_cowshare++;
 		}
 	}
