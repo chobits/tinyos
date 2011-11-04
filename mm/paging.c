@@ -173,8 +173,9 @@ int pf_copyonwrite(struct regs *reg, unsigned int addr)
 	if (addr >= KERNEL_BASE)
 		return -1;
 	pte = pte_lookup(ctask->us.pgdir, addr, 0);
-	if (!pte || !(*pte | PTE_COW) || !PTE_PADDR(*pte))
+	if (!pte || !(*pte & PTE_COW) || !PTE_PADDR(*pte) || !(*pte & PTE_U) || (*pte & PTE_W))
 		return -1;
+
 	/*
 	 * handle orignal cow page
 	 * free ref page = ADDR2PG(PTE_PADDR(*pte));
@@ -189,7 +190,7 @@ int pf_copyonwrite(struct regs *reg, unsigned int addr)
 	free_page(page);
 	/* alloc and copy orignal page */
 	if (!(p = get_free_page_pa()))
-		return -1;
+		panic("Cannot get free page for copy-on-write page");
 	memcpy((void *)VADDR(p), (void *)VADDR(PTE_PADDR(*pte)), PGSIZE);
 	*pte = PTE(p, PTE_U | PTE_P | PTE_W);
 	return 0;
