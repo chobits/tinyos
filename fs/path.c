@@ -34,13 +34,15 @@ struct inode *path_lookup_dir(char *path, char **basename, int *baselen)
 	/* get start dir inode */
 	if (path[0] == '/') {
 		start = ctask->fs.root_dir;
+		prev = start;
 		/* skip slash */
 		while (*path == '/')
 			path++;
 	} else {
 		start = ctask->fs.current_dir;
+		prev = NULL;
 	}
-	prev = dir = start;
+	dir = start;
 	while (1) {
 		base = path;
 		len = path_next_entry(&path);
