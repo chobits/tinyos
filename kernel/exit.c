@@ -14,8 +14,11 @@ void free_page_table(pde_t *pde)
 		if (!(*pte & PTE_P))
 			continue;
 		page = ADDR2PG(PTE_PADDR(*pte));	/* physical page */
-		if (*pte & PTE_COW)
-			page->pg_cowshare--;
+		if (*pte & PTE_COW) {
+			/* Cowshare may equal 0 with pte flags: COW ~W. */
+			if (page->pg_cowshare > 0)
+				page->pg_cowshare--;
+		}
 		free_page(page);
 	}
 	/* free page table */
