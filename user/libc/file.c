@@ -64,3 +64,9 @@ int chdir(char *path)
 	return r;
 }
 
+int fgetdir(int fd, int s, int n, struct dir_stat *ds)
+{
+	if (s < 0 || n <= 0)
+		return -1;
+	return usys_fgetdir(fd, s, n, ds);
+}

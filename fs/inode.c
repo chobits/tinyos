@@ -75,3 +75,12 @@ void inode_chdir(struct inode *inode)
 		inode_close(old);
 }
 
+int inode_getdir(struct inode *inode, int start, int num, struct dir_stat *ds)
+{
+	int r = -1;
+	if (!S_ISDIR(inode->i_mode))
+		return -1;
+	if (inode->i_ops && inode->i_ops->getdir)
+		r = inode->i_ops->getdir(inode, start, num, ds);
+	return r;
+}

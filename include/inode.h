@@ -7,6 +7,7 @@ struct dirty_block_cache;
 struct block;
 struct inode;
 struct file_stat;
+struct dir_stat;
 
 struct inode_operations {
 	int (*read)(struct inode *, char *, size_t, off_t);
@@ -15,6 +16,7 @@ struct inode_operations {
 	void (*update_size)(struct inode *, size_t);
 	void (*close)(struct inode *);
 	void (*sync)(struct inode *);
+	int (*getdir)(struct inode *, int, int, struct dir_stat *);
 };
 
 struct inode {
@@ -42,5 +44,6 @@ extern void inode_sync_dbc(struct inode *inode);
 extern void inode_free_dbc(struct inode *inode);
 extern void inode_add_dbc(struct inode *inode, struct block *block);
 extern void inode_chdir(struct inode *inode);
+extern int inode_getdir(struct inode *inode, int start, int num, struct dir_stat *ds);
 
 #endif	/* inode.h */

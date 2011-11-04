@@ -16,6 +16,13 @@ struct file_stat {
 	unsigned int mode;
 };
 
+#define DIR_SIZE 32
+struct dir_stat {
+	char name[DIR_SIZE];
+	int len;
+	unsigned int inode;
+};
+
 #define S_IFMT		00170000
 
 #define S_IFSOCK	00140000

@@ -13,6 +13,7 @@ struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len);
 void minix_inode_update_size(struct inode *inode, size_t size);
 void minix_put_inode(struct inode *inode);
 void minix_sync_inode(struct inode *inode);
+int minix_inode_getdir(struct inode *dir, int start, int num, struct dir_stat *ds);
 
 static struct inode_operations minix_iops = {
 	.read = minix_inode_read,
@@ -21,6 +22,7 @@ static struct inode_operations minix_iops = {
 	.update_size = minix_inode_update_size,
 	.close = minix_put_inode,
 	.sync = minix_sync_inode,
+	.getdir = minix_inode_getdir,
 };
 
 static struct slab *minix_inode_slab;
@@ -206,6 +208,8 @@ struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len)
 		de = (struct minix_dentry *)block->b_data;
 		n = min(entries - i, MINIX_DENTRIES_PER_BLOCK);
 		for (k = 0; k < n; k++, de++) {
+			if (de->d_ino == 0)
+				continue;
 			/* strncmp skips deleted entry automatically. */
 			if (strlen(de->d_name) == len &&
 				!strncmp(de->d_name, base, len))
@@ -218,6 +222,41 @@ found:
 	inode = minix_get_inode(dir->i_sb, de->d_ino);
 	put_block(block);
 	return inode;
+}
+
+/*
+ * get dir entries from @dir and write them into @ds
+ * Note: it may get no @ds because of empty minix dentry(d_ino == 0),
+ *       usermode program should take care of it!
+ */
+int minix_inode_getdir(struct inode *dir, int start, int num, struct dir_stat *ds)
+{
+	struct block *block;
+	struct minix_dentry *de;
+	int r, i, k, n, off;
+
+	num = min(dir->i_size / MINIX_DENTRY_SIZE, start + num);
+	r = 0;
+	for (i = start; i < num; i += n) {
+		off = i % MINIX_DENTRIES_PER_BLOCK;
+		n = min(num - i, MINIX_DENTRIES_PER_BLOCK - off);
+		block = bmap_block(dir, i / MINIX_DENTRIES_PER_BLOCK, 0);
+		if (!block)
+			continue;
+		de = (struct minix_dentry *)block->b_data + off;
+		for (k = 0; k < n; k++, de++) {
+			/* no dir */
+			if (de->d_ino == 0)
+				continue;
+			/* real copy */
+			ds->len = strcpy(ds->name, de->d_name);
+			ds->inode = de->d_ino;
+			ds++;
+			r++;
+		}
+		put_block(block);
+	}
+	return r;
 }
 
 void minix_inode_update_size(struct inode *inode, size_t size)

@@ -4,6 +4,7 @@
 #include <types.h>
 
 struct file_stat;
+struct dir_stat;
 
 extern int printf(char *, ...);
 extern int gets(char *, int);
@@ -23,6 +24,7 @@ extern int fsync(int fd);
 extern int fstat(int fd, struct file_stat *);
 extern int fchdir(int fd);
 extern int chdir(char *);
+extern int fgetdir(int, int, int, struct dir_stat *);
 
 #define S_IFMT		00170000
 #define S_IFSOCK	0140000
@@ -68,6 +70,13 @@ struct file_stat {
 	unsigned int size;
 	unsigned int inode;
 	unsigned int mode;
+};
+
+#define DIR_SIZE 32
+struct dir_stat {
+	char name[DIR_SIZE];
+	int len;
+	unsigned int inode;
 };
 
 #endif	/* ulib.h */

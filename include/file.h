@@ -4,6 +4,7 @@
 #include <types.h>
 
 struct file_stat;
+struct dir_stat;
 struct inode;
 struct file {
 	off_t f_pos;
@@ -31,5 +32,6 @@ extern int file_stat(struct file *file, struct file_stat *stat);
 extern void ft_close(struct fd_table *);
 extern struct file *alloc_file(struct inode *, unsigned int);
 extern int file_chdir(struct file *file);
+extern int file_getdir(struct file *file, int start, int num, struct dir_stat *ds);
 
 #endif	/* file.h */

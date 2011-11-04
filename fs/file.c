@@ -140,3 +140,13 @@ int file_chdir(struct file *file)
 	return r;
 }
 
+int file_getdir(struct file *file, int start, int num, struct dir_stat *ds)
+{
+	int r = -1;
+	get_file(file);
+	if (file->f_inode)
+		r = inode_getdir(file->f_inode, start, num, ds);
+	put_file(file);
+	return r;
+}
+

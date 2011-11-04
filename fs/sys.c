@@ -1,6 +1,7 @@
+#include <print.h>
 #include <file.h>
 #include <task.h>
-#include <print.h>
+#include <fs.h>
 
 void ft_close(struct fd_table *ft)
 {
@@ -147,6 +148,18 @@ int sys_fchdir(int fd)
 	if (!file)
 		return -1;
 	r = file_chdir(file);
+	put_file(file);
+	return r;
+}
+
+/* get dir entry from @fd */
+int sys_fgetdir(int fd, int start, int num, struct dir_stat *ds)
+{
+	struct file *file = fd_get_file(fd);
+	int r = -1;
+	if (!file)
+		return -1;
+	r = file_getdir(file, start, num, ds);
 	put_file(file);
 	return r;
 }

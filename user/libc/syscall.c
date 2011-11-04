@@ -98,3 +98,9 @@ int usys_fchdir(int fd)
 {
 	return usyscall(SYS_fchdir, (u32)fd, 0, 0, 0, 0);
 }
+
+int usys_fgetdir(int fd, int s, int n, struct dir_stat *ds)
+{
+	return usyscall(SYS_fgetdir, (u32)fd, (u32)s, (u32)n, (u32)ds, 0);
+}
+
