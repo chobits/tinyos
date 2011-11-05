@@ -3,6 +3,17 @@
 #include <task.h>
 #include <fs.h>
 
+void put_inode(struct inode *inode)
+{
+	inode->i_refcnt--;
+	if (inode->i_refcnt == 0) {
+		if (inode->i_ops && inode->i_ops->release)
+			inode->i_ops->release(inode);
+	} else if (inode->i_refcnt < 0) {
+		printk("Free inode too many times(%d)\n", inode->i_refcnt);
+	}
+}
+
 struct inode *get_inode_ref(struct inode *inode)
 {
 	inode->i_refcnt++;
@@ -49,8 +60,7 @@ struct inode *inode_open(char *path)
 
 void inode_close(struct inode *inode)
 {
-	if (inode->i_ops && inode->i_ops->close)
-		inode->i_ops->close(inode);
+	put_inode(inode);
 }
 
 void inode_sync(struct inode *inode)
@@ -64,6 +74,7 @@ void inode_stat(struct inode *inode, struct file_stat *stat)
 	stat->size = inode->i_size;
 	stat->inode = inode->i_ino;
 	stat->mode = inode->i_mode;
+	stat->iref = inode->i_refcnt;
 }
 
 void inode_chdir(struct inode *inode)
@@ -72,7 +83,7 @@ void inode_chdir(struct inode *inode)
 	old = ctask->fs.current_dir;
 	ctask->fs.current_dir = get_inode_ref(inode);
 	if (old)
-		inode_close(old);
+		put_inode(old);
 }
 
 int inode_getdir(struct inode *inode, int start, int num, struct dir_stat *ds)
@@ -84,3 +95,18 @@ int inode_getdir(struct inode *inode, int start, int num, struct dir_stat *ds)
 		r = inode->i_ops->getdir(inode, start, num, ds);
 	return r;
 }
+
+struct inode *inode_mkdir(char *path)
+{
+	struct inode *dir, *inode = NULL;
+	char *basename;
+	int len;
+	dir = path_lookup_dir(path, &basename, &len);
+	if (dir) {
+		if (len > 0 && dir->i_ops && dir->i_ops->mkdir)
+			inode = dir->i_ops->mkdir(dir, basename, len);
+		put_inode(dir);
+	}
+	return inode;
+}
+

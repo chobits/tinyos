@@ -150,3 +150,14 @@ int file_getdir(struct file *file, int start, int num, struct dir_stat *ds)
 	return r;
 }
 
+struct file *file_mkdir(char *path, unsigned int mode)
+{
+	struct file *file;
+	struct inode *inode;
+	inode = inode_mkdir(path);
+	if (!inode)
+		return NULL;
+	file = alloc_file(inode, mode);
+	return file;
+}
+

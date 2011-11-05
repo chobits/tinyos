@@ -16,7 +16,8 @@ export Q LD AS CC NM OBJDUMP OBJCOPY CFLAGS
 
 KVM	= qemu-kvm
 KLINK	= -T kernel.ld
-USER_APPS = user/init user/hello user/sh user/cat user/stat user/ls
+USER_APPS = user/init user/hello user/sh user/cat user/stat user/ls user/mkdir\
+		user/sync
 
 OBJS	= kernel/kernel.o mm/mm.o video/video.o fs/fs.o keyboard/keyboard.o
 
@@ -85,6 +86,7 @@ loaduser:disk.img
 	-sudo mount -t minix /dev/loop0 minixdir
 	-sudo cp $(USER_APPS) minixdir/
 	-sudo mkdir -p minixdir/dir
+	-sudo mkdir -p minixdir/dir/dir1
 	-@sudo mkdir -p $(MKDIRS); echo "Create 100 dirs"
 	-@sudo rmdir $(RMDIRS); echo "Remove 20 dirs"
 	-echo "hello wrold" > text1; sudo mv text1 minixdir/

@@ -10,6 +10,12 @@ struct inode *inode_sub_lookup(struct inode *dir, char *basename, int len)
 		inode = dir->i_ops->sub_lookup(dir, basename, len);
 	return inode;
 }
+static struct inode *inode_sub_lookup_put(struct inode *dir, char *base, int len)
+{
+	struct inode *inode = inode_sub_lookup(dir, base, len);
+	put_inode(dir);
+	return inode;
+}
 
 int path_next_entry(char **path)
 {
@@ -34,7 +40,7 @@ struct inode *path_lookup_dir(char *path, char **basename, int *baselen)
 	/* get start dir inode */
 	if (path[0] == '/') {
 		start = ctask->fs.root_dir;
-		prev = start;
+		prev = get_inode_ref(start);
 		/* skip slash */
 		while (*path == '/')
 			path++;
@@ -42,7 +48,7 @@ struct inode *path_lookup_dir(char *path, char **basename, int *baselen)
 		start = ctask->fs.current_dir;
 		prev = NULL;
 	}
-	dir = start;
+	dir = get_inode_ref(start);
 	while (1) {
 		base = path;
 		len = path_next_entry(&path);
@@ -59,9 +65,12 @@ struct inode *path_lookup_dir(char *path, char **basename, int *baselen)
 				continue;
 			} else if (len == 2 && base[1] == '.') {
 				if (prev) {
-					dir = prev;
-					if (dir != start)
+					put_inode(dir);
+					dir = get_inode_ref(prev);
+					if (dir != start) {
+						put_inode(prev);
 						prev = NULL;
+					}
 					continue;
 				}
 				ddff = 1;
@@ -73,14 +82,19 @@ struct inode *path_lookup_dir(char *path, char **basename, int *baselen)
 			len = 0;
 			break;
 		}
-		if (!ddff)
-			prev = dir;
-		dir = inode_sub_lookup(dir, base, len);
+		if (!ddff) {
+			if (prev)
+				put_inode(prev);
+			prev = get_inode_ref(dir);
+		}
+		dir = inode_sub_lookup_put(dir, base, len);
 		if (!dir) {
 			len = 0;
 			break;
 		}
 	}
+	if (prev)
+		put_inode(prev);
 	if (len == 0)
 		base = NULL;
 	if (basename)
@@ -101,9 +115,9 @@ struct inode *inode_path_lookup(char *path)
 	if (len == 0) {
 		/* for "/" ,"//", "///", ... */
 		if (dir == ctask->fs.root_dir)
-			return get_inode_ref(dir);
+			return dir;
 		return NULL;
 	}
-	return inode_sub_lookup(dir, basename, len);
+	return inode_sub_lookup_put(dir, basename, len);
 }
 

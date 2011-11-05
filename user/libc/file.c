@@ -70,3 +70,13 @@ int fgetdir(int fd, int s, int n, struct dir_stat *ds)
 		return -1;
 	return usys_fgetdir(fd, s, n, ds);
 }
+
+int mkdir(char *path, unsigned int mode)
+{
+	return usys_mkdir(path, mode);
+}
+
+void sync(void)
+{
+	usys_sync();
+}

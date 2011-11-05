@@ -25,6 +25,8 @@ extern int fstat(int fd, struct file_stat *);
 extern int fchdir(int fd);
 extern int chdir(char *);
 extern int fgetdir(int, int, int, struct dir_stat *);
+extern int mkdir(char *, unsigned int);
+extern void sync(void);
 
 #define S_IFMT		00170000
 #define S_IFSOCK	0140000
@@ -70,6 +72,7 @@ struct file_stat {
 	unsigned int size;
 	unsigned int inode;
 	unsigned int mode;
+	unsigned int iref;
 };
 
 #define DIR_SIZE 32

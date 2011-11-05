@@ -14,6 +14,7 @@ struct file_stat {
 	unsigned int size;
 	unsigned int inode;
 	unsigned int mode;
+	unsigned int iref;	/* inode reference count */
 };
 
 #define DIR_SIZE 32

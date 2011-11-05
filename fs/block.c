@@ -178,6 +178,11 @@ int set_block_size(struct block_device *bdev, int size)
 	return r;
 }
 
+void sys_sync(void)
+{
+	sync_blocks();
+}
+
 #ifdef DEBUG_BLOCK
 extern struct block_device hd_bdev;
 void block_test(void)

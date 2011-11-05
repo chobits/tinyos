@@ -25,11 +25,13 @@ typedef u32 (*syscall_t)(u32, u32, u32, u32, u32);
 #define SYS_execute	15
 #define SYS_fchdir	16
 #define SYS_fgetdir	17
-#define SYS_CALL_MAX	17
+#define SYS_mkdir	18
+#define SYS_sync	19
+#define SYS_CALL_MAX	19
 
 extern int sys_puts(char *);
 extern int sys_gets(char *, int);
-extern int sys_open(char *, size_t);
+extern int sys_open(char *, unsigned int);
 extern int sys_read(int, char *, size_t);
 extern int sys_write(int, char *, size_t);
 extern int sys_fsync(int);
@@ -44,5 +46,7 @@ extern int sys_wait(int *);
 extern int sys_execute(char *, int, char **);
 extern int sys_fchdir(int);
 extern int sys_fgetdir(int, int, int, struct dir_stat *);
+extern int sys_mkdir(char *, unsigned int);
+extern void sys_sync(void);
 
 #endif	/* syscall.h */

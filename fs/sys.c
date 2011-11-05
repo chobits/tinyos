@@ -164,3 +164,20 @@ int sys_fgetdir(int fd, int start, int num, struct dir_stat *ds)
 	return r;
 }
 
+int sys_mkdir(char *path, unsigned int mode)
+{
+	struct file *file;
+	int fd = fd_alloc();
+	if (fd < 0)
+		goto out;
+	file = file_mkdir(path, mode);
+	if (!file)
+		goto out_free_fd;
+	fd_save_file(fd, file);
+	return fd;
+out_free_fd:
+	fd_free(fd);
+out:
+	return -1;
+}
+

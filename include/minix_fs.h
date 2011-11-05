@@ -21,7 +21,7 @@ struct block;
 #define MINIX_ZERO_BLOCK	((struct block *)0xffffdead)
 #define MINIX_BDATA_BLK(b, blk)	(((unsigned short *)(b)->b_data)[blk])
 
-#define NAME_LEN		14
+#define MINIX_NAME_LEN		14
 #define MINIX_ROOT_INO		1
 #define MINIX_SUPER_BLK		1
 
@@ -94,7 +94,7 @@ struct minix_d_super_block {
 
 struct minix_dentry {
 	unsigned short d_ino;
-	char d_name[NAME_LEN];
+	char d_name[MINIX_NAME_LEN];
 } __attribute__((packed));
 
 extern struct block *imap_block(struct super_block *, unsigned int);
@@ -104,5 +104,7 @@ extern struct block *bmap_block(struct inode *, int, int);
 extern struct block *minix_get_block(struct super_block *, int);
 extern int bmap(struct inode *, int, int);
 extern void minix_inode_dirty_block(struct inode *inode, struct block *block);
+extern struct minix_d_inode *imap_new_inode(struct super_block *sb, int *rino, struct block **b);
+extern struct block *minix_new_block(struct super_block *sb, unsigned short *data);
 
 #endif	/* minix_fs.h */

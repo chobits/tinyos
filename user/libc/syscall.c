@@ -104,3 +104,12 @@ int usys_fgetdir(int fd, int s, int n, struct dir_stat *ds)
 	return usyscall(SYS_fgetdir, (u32)fd, (u32)s, (u32)n, (u32)ds, 0);
 }
 
+int usys_mkdir(char *path, unsigned int mode)
+{
+	return usyscall(SYS_mkdir, (u32)path, (u32)mode, 0, 0, 0);
+}
+
+void usys_sync(void)
+{
+	usyscall(SYS_sync, 0, 0, 0, 0, 0);
+}

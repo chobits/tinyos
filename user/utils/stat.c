@@ -28,7 +28,8 @@ void parse_stat(char *file, struct file_stat *stat)
 	default:
 		printf("<unkown file type>");
 	}
-	printf("\nsize:%d bytes ino: %d\n", stat->size, stat->inode);
+	printf("\nsize:%d bytes ino: %d refcnt:%d\n",
+		stat->size, stat->inode, stat->iref);
 }
 
 int main(int argc, char **argv)

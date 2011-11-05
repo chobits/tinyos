@@ -25,6 +25,8 @@ struct dir_stat;
 #define SYS_execute	15
 #define SYS_fchdir	16
 #define SYS_fgetdir	17
+#define SYS_mkdir	18
+#define SYS_sync	19
 
 extern int usys_puts(char *);
 extern int usys_gets(char *, int);
@@ -43,5 +45,7 @@ extern int usys_wait(int *);
 extern int usys_execute(char *, int, char **);
 extern int usys_fchdir(int);
 extern int usys_fgetdir(int fd, int s, int n, struct dir_stat *ds);
+extern int usys_mkdir(char *, unsigned int);
+extern void usys_sync(void);
 
 #endif	/* syscall.h */

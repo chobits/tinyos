@@ -1,7 +1,7 @@
 SUBDIR = user
 CFLAGS	= -Wall -Werror -fno-builtin -nostdinc -nostdlib -Iinclude -g
 export SUBDIR CFLAGS
-APPS	= init hello sh cat stat ls
+APPS	= init hello sh cat stat ls mkdir sync
 ASMS	= $(patsubst %, %.asm, $(APPS))
 SYMS	= $(patsubst %, %.sym, $(APPS))
 
@@ -20,12 +20,20 @@ sh:shell/shell.o libc/libc.o
 cat:utils/cat.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
+
 stat:utils/stat.o libc/libc.o
+	$(Q)$(LD) $^ -o $@
+	@echo " [LD]  $(SUBDIR)/$@"
+mkdir:utils/mkdir.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
 ls:utils/ls.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
+sync:utils/sync.o libc/libc.o
+	$(Q)$(LD) $^ -o $@
+	@echo " [LD]  $(SUBDIR)/$@"
+
 # objects
 %.o:%.c
 	$(Q)$(CC) $(CFLAGS) $< -c -o $@

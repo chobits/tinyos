@@ -147,8 +147,28 @@ struct block *bmap_block(struct inode *inode, int blk, int create)
 	return minix_get_block(inode->i_sb, blk);
 }
 
+static int imap_create(struct super_block *sb)
+{
+	struct block *block;
+	int i, n, r;
+	/* new inode */
+	i = INODE_MAP_BLK(0);
+	n = INODE_MAP_BLK(0) + minixsuper(sb)->s_imap_blocks;
+	while (i < n) {
+		block = minix_get_block(sb, i);
+		r = searchzerobit(block->b_data, BITS_PER_BLOCK, 1);
+		put_block(block);
+		if (r >= 0) {
+			r = (i - INODE_MAP_BLK(0)) * BITS_PER_BLOCK + r;
+			break;
+		}
+		i++;
+	}
+	return r;
+}
+
 /* return orignal bit value */
-static int imap(struct super_block *sb, unsigned int ino)
+static int imap_lookup(struct super_block *sb, unsigned int ino)
 {
 	struct block *block;
 	int r;
@@ -161,13 +181,14 @@ static int imap(struct super_block *sb, unsigned int ino)
 struct block *imap_block(struct super_block *sb, unsigned int ino)
 {
 	/* 1 for used inode, 0 for free */
-	if (imap(sb, ino) == 0)
+	if (imap_lookup(sb, ino) == 0)
 		return NULL;
 	return minix_get_block(sb, INODE_BLK(minixsuper(sb), ino));
 }
 
+/* If @ino equals, we create a new disk inode. */
 struct minix_d_inode *imap_get_inode(struct super_block *sb, unsigned int ino,
-					struct block **b)
+		struct block **b)
 {
 	struct block *block = imap_block(sb, ino);
 	if (!block)
@@ -178,3 +199,28 @@ struct minix_d_inode *imap_get_inode(struct super_block *sb, unsigned int ino,
 	return BLOCK2INODE(block, ino);
 }
 
+struct minix_d_inode *imap_new_inode(struct super_block *sb, int *rino,
+		struct block **b)
+{
+	struct minix_d_inode *mdi;
+	struct block *block;
+	int ino = imap_create(sb);
+	if (ino < 0)
+		return NULL;
+	block = minix_get_block(sb, INODE_BLK(minixsuper(sb), ino));
+	if (!block)
+		return NULL;
+	/* init minix disk inode */
+	mdi = BLOCK2INODE(block, ino);
+	memset(mdi, 0x0, sizeof(*mdi));
+	mdi->i_mode = 0755 | S_IFREG;	/* default type: regular file */
+	mdi->i_nlinks = 1;
+	/* minix disk inode is dirty */
+	block->b_dirty = 1;
+	/* save return value */
+	if (rino)
+		*rino = ino;
+	if (b)
+		*b = block;
+	return mdi;
+}
