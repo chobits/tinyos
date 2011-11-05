@@ -1,27 +1,48 @@
 SUBDIR = user
 CFLAGS	= -Wall -Werror -fno-builtin -nostdinc -nostdlib -Iinclude -g
 export SUBDIR CFLAGS
+APPS	= init hello sh cat stat ls
+ASMS	= $(patsubst %, %.asm, $(APPS))
+SYMS	= $(patsubst %, %.sym, $(APPS))
 
-all:init hello
+all:$(APPS)
+# basic programs
 hello:hello.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
-
 init:init.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
-
+sh:shell/shell.o libc/libc.o
+	$(Q)$(LD) $^ -o $@
+	@echo " [LD]  $(SUBDIR)/$@"
+# utilities
+cat:utils/cat.o libc/libc.o
+	$(Q)$(LD) $^ -o $@
+	@echo " [LD]  $(SUBDIR)/$@"
+stat:utils/stat.o libc/libc.o
+	$(Q)$(LD) $^ -o $@
+	@echo " [LD]  $(SUBDIR)/$@"
+ls:utils/ls.o libc/libc.o
+	$(Q)$(LD) $^ -o $@
+	@echo " [LD]  $(SUBDIR)/$@"
+# objects
 %.o:%.c
 	$(Q)$(CC) $(CFLAGS) $< -c -o $@
 	@echo " [CC]  $(SUBDIR)/$@"
+utils/%.o:utils/%.c
+	$(Q)$(CC) $(CFLAGS) $< -c -o $@
+	@echo " [CC]  $(SUBDIR)/utils/$@"
 
 libc/libc.o:libc/*.c libc/*.S
 	@make -C libc/
+shell/shell.o:shell/*.c
+	@make -C shell/
 
-debug:init.asm init.sym
-init.asm:init
+debug:$(ASMS) $(SYMS)
+%.asm:%
 	$(Q)$(OBJDUMP) -S $< > $@
 	@echo " [DASM]  $(SUBDIR)/$@"
-init.sym:init
+%.sym:%
 	$(Q)$(NM) -n $< > $@
 	@echo " [NM]  $(SUBDIR)/$@"

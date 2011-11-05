@@ -3,17 +3,17 @@ What is chos?
  (This is my second time to write this, the original one is discarded.)
 
 Quick start?
-  # make          <- compile and generate bootable disk image
-  # make loaduser <- install basic usermode programs into disk image
-  # make bochs    <- run it in bochs
+  # make                <- compile and generate bootable disk image
+  # make loaduser       <- install basic usermode programs into disk image
+  # make [bochs|kvm]    <- run it in bochs or kvm
 
 Debug?
   # make debug
-  # gdb -q [boot/boot.elf | kernel.elf | user/init]
+  # gdb -q [boot/boot.elf | kernel.elf | user/*]
   ...
-  # vim [boot/boot.asm | kernel.asm | user/init.asm]
+  # vim [boot/boot.asm | kernel.asm | user/*.asm]
   ...
-  # grep "some symbol" [boot/boot.sym | kernel.sym | user/init.sym]
+  # grep "some symbol" [boot/boot.sym | kernel.sym | user/*.sym]
   ...
 
 Author?

@@ -24,7 +24,6 @@ int main(int argc, char **argv)
 		yield();
 #endif
 
-#define TEST_EXIT
 #ifdef TEST_EXIT
 	int pid;
 	int rv;
@@ -138,6 +137,28 @@ err:
 		iprintf("[%d]%*s", size, size, buf);
 	iprintf("ERROR gets return %d\n", size);
 	while (1) ;
+#endif
+
+#define TEST_SHELL
+#ifdef TEST_SHELL
+	int pid, rv;
+	pid = fork();
+	if (pid < 0) {
+		iprintf("Fork error\n");
+	} else if (pid == 0) {
+		char *as[] = { "/sh", NULL };
+		execute("/sh", 1, as);
+		iprintf("execve error\n");
+	} else {
+		pid = wait(&rv);
+		if (pid > 0)
+			iprintf("/sh(%d) exit %d\n", pid, rv);
+		else
+			iprintf("/sh exit error\n");
+	}
+
+	while (1)
+		yield();
 #endif
 	iprintf("I'm process %d\n", getpid());
 	while (1) ;

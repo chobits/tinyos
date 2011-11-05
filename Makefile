@@ -14,13 +14,15 @@ OBJCOPY	= objcopy
 CFLAGS	= -Wall -Werror -fno-builtin -nostdinc -nostdlib -I../include -g
 export Q LD AS CC NM OBJDUMP OBJCOPY CFLAGS
 
+KVM	= qemu-kvm
 KLINK	= -T kernel.ld
+USER_APPS = user/init user/hello user/sh user/cat user/stat user/ls
 
 OBJS	= kernel/kernel.o mm/mm.o video/video.o fs/fs.o keyboard/keyboard.o
 
 all:disk.img user
 user:user/init
-user/init:user/*.c user/libc/*.c user/libc/*.S
+user/init:user/*.c user/*/*.c user/*/*.S
 	@make -C user/ all
 
 disk.img:boot/boot.bin kernel.bin tools/build tools/mkfs.minix
@@ -73,20 +75,30 @@ kernel.sym:kernel.elf
 	$(Q)$(NM) -n $< > $@
 	@echo " [NM]  $@"
 
+# minixdir/dir/[1-100]
+MKDIRS = $(shell seq -s ' ' 1 100 | sed 's/\([0-9]\+\)/minixdir\/dir\/\1/g')
+RMDIRS = $(shell seq -s ' ' 20 40 | sed 's/\([0-9]\+\)/minixdir\/dir\/\1/g')
 # load user environment into bootale disk image
 loaduser:disk.img
-	sudo losetup /dev/loop0 -o $(shell cat .offset) disk.img
-	-sudo mount -t minix /dev/loop0 /mnt
-	-sudo cp user/init user/hello /mnt/
-	-sudo touch text
-	-sudo cp text /mnt/text
-	-sudo umount /mnt
+	-mkdir -p minixdir
+	-sudo losetup /dev/loop0 -o $(shell cat .offset) disk.img
+	-sudo mount -t minix /dev/loop0 minixdir
+	-sudo cp $(USER_APPS) minixdir/
+	-sudo mkdir -p minixdir/dir
+	-@sudo mkdir -p $(MKDIRS); echo "Create 100 dirs"
+	-@sudo rmdir $(RMDIRS); echo "Remove 20 dirs"
+	-echo "hello wrold" > text1; sudo mv text1 minixdir/
+	-echo "RIP Dennis Ritchie" > text2; sudo mv text2 minixdir/dir/
+	-sudo umount minixdir
 	-sudo losetup -d /dev/loop0
+	-rm -rf minixdir
 
-bochs:
+kvm:disk.img
+	$(KVM) -hda disk.img -m 64
+bochs:disk.img
 	bochs -qf tools/bochs.bxrc
 # If your bochs installs nogui library, you can run this command.
-nbochs:
+nbochs:disk.img
 	bochs -qf tools/bochs.bxrc 'display_library: nogui'
 
 tag:
@@ -94,18 +106,19 @@ tag:
 	@echo " [CTAGS]"
 
 mount:disk.img
+	mkdir -p minixdir
 	-sudo losetup /dev/loop0 -o $(shell cat .offset) disk.img
-	-sudo mount -t minix /dev/loop0 /mnt
+	-sudo mount -t minix /dev/loop0 minixdir
 
 umount:
-	-sudo umount /mnt
+	-sudo umount minixdir
 	-sudo losetup -d /dev/loop0
+	rm -rf minixdir
 
 clean:
-	rm -rf kernel.elf kernel.bin kernel.sym kernel.asm
-	rm -rf */*/*.o */*.o boot/boot.bin boot/boot.elf boot/boot.asm boot/boot.sym
-	rm -rf user/init user/init.sym user/init.asm user/hello
-	rm -rf tools/mkfs.minix tools/build tags .offset disk.img text
+	rm -rf */*/*.o */*.o *.asm *.sym */*.asm */*.sym *.elf *.bin */*.elf */*.bin
+	rm -rf $(USER_APPS)
+	rm -rf tools/mkfs.minix tools/build tags .offset disk.img
 
 lines:
 	@echo "code lines:"
