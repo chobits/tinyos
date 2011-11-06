@@ -76,6 +76,11 @@ int mkdir(char *path, unsigned int mode)
 	return usys_mkdir(path, mode);
 }
 
+int rmdir(char *path)
+{
+	return usys_rmdir(path);
+}
+
 void sync(void)
 {
 	usys_sync();

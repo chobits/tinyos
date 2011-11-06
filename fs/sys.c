@@ -181,3 +181,7 @@ out:
 	return -1;
 }
 
+int sys_rmdir(char *path)
+{
+	return file_rmdir(path);
+}

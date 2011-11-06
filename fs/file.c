@@ -161,3 +161,7 @@ struct file *file_mkdir(char *path, unsigned int mode)
 	return file;
 }
 
+int file_rmdir(char *path)
+{
+	return inode_rmdir(path);
+}

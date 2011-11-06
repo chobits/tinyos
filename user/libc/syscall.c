@@ -113,3 +113,8 @@ void usys_sync(void)
 {
 	usyscall(SYS_sync, 0, 0, 0, 0, 0);
 }
+
+int usys_rmdir(char *path)
+{
+	return usyscall(SYS_rmdir, (u32)path, 0, 0, 0, 0);
+}

@@ -24,6 +24,7 @@ static syscall_t sys_call_table[SYS_CALL_MAX + 1] = {
 	__sys_call_entry(fgetdir),
 	__sys_call_entry(mkdir),
 	__sys_call_entry(sync),
+	__sys_call_entry(rmdir),
 };
 
 void do_sys_call(struct regs *reg)

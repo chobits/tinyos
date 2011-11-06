@@ -147,6 +147,103 @@ struct block *bmap_block(struct inode *inode, int blk, int create)
 	return minix_get_block(inode->i_sb, blk);
 }
 
+static void bmap_put_block(struct super_block *sb, int blk)
+{
+	struct block *block;
+	block = minix_get_block(sb, ZONE_MAP_BLK(minixsuper(sb), blk));
+	if (!clearbit(block->b_data, ZONE_MAP_BLKOFF(minixsuper(sb), blk)))
+		panic("Clear unexist-zone bitmap");
+	block->b_dirty = 1;
+	put_block(block);
+}
+
+static void bmap_put_one_level_blocks(struct inode *inode, int blk, int num)
+{
+	struct super_block *sb = inode->i_sb;
+	struct block *block;
+	unsigned short *br;
+	int i;
+	block = minix_get_block(sb, blk);
+	if (!block)
+		panic("Cannot get minix block %d", blk);
+	br = (unsigned short *)block->b_data;
+	for (i = 0; i < num; i++, br++) {
+		if (*br)
+			bmap_put_block(sb, *br);
+	}
+#ifdef MINIX_STRICT_CLEAR
+	/* clear indirect block */
+	memset(block->b_data, 0x0, block->b_size);
+	minix_inode_dirty_block(inode, block);
+#endif
+	put_block(block);
+	bmap_put_block(sb, blk);
+}
+
+void bmap_put_blocks(struct inode *inode)
+{
+	struct super_block *sb = inode->i_sb;
+	struct minix_d_inode *mdi = i2mdi(inode);
+	struct block *block;
+	unsigned short *br;
+	int blks, i, n;
+	if (!mdi->i_size)
+		return;
+	blks = MINIX_BLOCKS_UP(mdi->i_size);
+	if (blks > 7 + 512 + 512 * 512)
+		panic("inode has too many blocks: %d", blks);
+	/* direct blocks */
+	n = min(blks, 7);
+	blks -= n;
+	for (i = 0; i < n; i++) {
+		if (mdi->i_zone[i])
+			bmap_put_block(sb, mdi->i_zone[i]);
+	}
+	/* one-level indirect blocks */
+	n = min(blks, 512);
+	blks -= n;
+	if (!n)
+		goto out;
+	if (mdi->i_zone[7])
+		bmap_put_one_level_blocks(inode, mdi->i_zone[7], n);
+	/* two-level indirect blocks */
+	if (!blks || !mdi->i_zone[8])
+		goto out;
+	block = minix_get_block(sb, mdi->i_zone[8]);
+	if (!block)
+		panic("Cannot get minix block:%d", mdi->i_zone[8]);
+	br = (unsigned short *)block->b_data;
+	for (i = 0; i < blks; i += n, br++) {
+		n = min(512, blks - i);
+		if (*br)
+			bmap_put_one_level_blocks(inode, *br, n);
+	}
+#ifdef MINIX_STRICT_CLEAR
+	/* clear indirect block */
+	memset(block->b_data, 0x0, block->b_size);
+	minix_inode_dirty_block(inode, block);
+#endif
+	put_block(block);
+out:
+	mdi->i_size = 0;
+	for (i = 0; i < 9; i++)
+		mdi->i_zone[i] = 0;
+	minix_inode_dirty(inode);
+}
+
+static int imap_clear(struct super_block *sb, int ino)
+{
+	struct block *block;
+	int r;
+	block = minix_get_block(sb, INODE_MAP_BLK(ino));
+	r = clearbit(block->b_data, ino & BITS_PER_BLOCK_MASK);
+	if (!r)
+		panic("Clear unexist-inode bitmap");
+	block->b_dirty = 1;
+	put_block(block);
+	return r;
+}
+
 static int imap_create(struct super_block *sb)
 {
 	struct block *block;
@@ -223,4 +320,14 @@ struct minix_d_inode *imap_new_inode(struct super_block *sb, int *rino,
 	if (b)
 		*b = block;
 	return mdi;
+}
+
+void imap_put_inode(struct inode *inode)
+{
+	/* free bitmap */
+	imap_clear(inode->i_sb, inode->i_ino);
+	/* free mdi and inode block */
+	memset(i2mdi(inode), 0x0, MINIX_INODE_SIZE);
+	minix_inode_dirty(inode);
+	put_block(i2mi(inode)->m_iblock);
 }

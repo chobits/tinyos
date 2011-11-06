@@ -49,7 +49,7 @@ int clearbit(void *src, int bits)
 {
 	u8 *bit8, r;
 	bit8 = (u8 *)src + (bits / 8);
-	r = *bit8 & (1 << (bits & 7));
+	r = (*bit8) & (1 << (bits & 7));
 	*bit8 = (*bit8) & ~(1 << (bits & 7));
 	return !!r;
 }

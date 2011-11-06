@@ -18,6 +18,7 @@ struct inode_operations {
 	void (*sync)(struct inode *);
 	int (*getdir)(struct inode *, int, int, struct dir_stat *);
 	struct inode *(*mkdir)(struct inode *, char *, int);
+	int (*rmdir)(struct inode *, char *, int);
 };
 
 struct inode {
@@ -49,5 +50,6 @@ extern void inode_chdir(struct inode *inode);
 extern int inode_getdir(struct inode *inode, int start, int num, struct dir_stat *ds);
 extern struct inode *inode_mkdir(char *path);
 extern void inode_update_size(struct inode *inode, size_t size);
+extern int inode_rmdir(char *path);
 
 #endif	/* inode.h */

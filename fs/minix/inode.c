@@ -15,6 +15,7 @@ void minix_inode_release(struct inode *inode);
 void minix_sync_inode(struct inode *inode);
 int minix_inode_getdir(struct inode *dir, int start, int num, struct dir_stat *ds);
 struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len);
+int minix_inode_rmdir(struct inode *dir, char *base, int len);
 
 static struct inode_operations minix_iops = {
 	.read = minix_inode_read,
@@ -25,6 +26,7 @@ static struct inode_operations minix_iops = {
 	.sync = minix_sync_inode,
 	.getdir = minix_inode_getdir,
 	.mkdir = minix_inode_mkdir,
+	.rmdir = minix_inode_rmdir,
 };
 
 static struct slab *minix_inode_slab;
@@ -125,11 +127,20 @@ struct inode *minix_get_inode(struct super_block *sb, unsigned int ino)
 	return inode;
 }
 
-void minix_free_inode(struct inode *inode)
+void minix_free_inode(struct minix_inode *mi)
 {
-	minix_inode_unhash(i2mi(inode));
-	/* free d_inode */
-	put_block(i2mi(inode)->m_iblock);
+	minix_inode_unhash(mi);
+	slab_free_object(minix_inode_slab, mi);
+}
+
+void minix_put_inode(struct inode *inode)
+{
+	/* free block bitmap and data blocks */
+	bmap_put_blocks(inode);
+	/* free inode bitmap and inode block */
+	imap_put_inode(inode);
+	/* free mi(i) */
+	minix_free_inode(i2mi(inode));
 }
 
 void minix_inode_release(struct inode *inode)
@@ -206,15 +217,15 @@ int minix_inode_read(struct inode *inode, char *buf, size_t size, off_t off)
 	return rsize;
 }
 
-struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len)
+struct minix_dentry *minix_lookup_dentry(struct inode *dir, char *base, int len, struct block **b)
 {
-	struct inode *inode;
-	struct block *block;
 	struct minix_dentry *de;
+	struct block *block;
 	int entries, i, k, n;
 
 	if (len > MINIX_NAME_LEN)
 		return NULL;
+
 	entries = dir->i_size / MINIX_DENTRY_SIZE;
 	for (i = 0; i < entries; i += n) {
 		block = bmap_block(dir, i / MINIX_DENTRIES_PER_BLOCK, 0);
@@ -232,6 +243,24 @@ struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len)
 	}
 	return NULL;
 found:
+	if (b)
+		*b = block;
+	else
+		put_block(block);
+	return de;
+}
+
+struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len)
+{
+	struct inode *inode;
+	struct block *block;
+	struct minix_dentry *de;
+
+	if (len > MINIX_NAME_LEN)
+		return NULL;
+	de = minix_lookup_dentry(dir, base, len, &block);
+	if (!de)
+		return NULL;
 	inode = minix_get_inode(dir->i_sb, de->d_ino);
 	put_block(block);
 	return inode;
@@ -243,14 +272,13 @@ struct inode *minix_inode_create(struct inode *dir, char *base, int len)
 	struct inode *inode;
 	struct block *block;
 	int entries, i, k, n;
+
 	if (len > MINIX_NAME_LEN)
 		return NULL;
-	inode = minix_inode_sub_lookup(dir, base, len);
-	/* also exist */
-	if (inode) {
-		put_inode(inode);
+	/* exist? */
+	de = minix_lookup_dentry(dir, base, len, NULL);
+	if (de)
 		return NULL;
-	}
 	/* find an empty dir entry */
 	entries = dir->i_size / MINIX_DENTRY_SIZE;
 	for (i = 0; i < entries; i += n) {
@@ -320,6 +348,40 @@ struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len)
 	minix_inode_dirty_block(inode, block);
 	put_block(block);
 	return inode;
+}
+
+int minix_inode_rmdir(struct inode *dir, char *base, int len)
+{
+	struct block *block;
+	struct minix_dentry *de;
+	struct inode *inode;
+	int r = -1;
+
+	de = minix_lookup_dentry(dir, base, len, &block);
+	if (!de)
+		return -1;
+
+	inode = minix_get_inode(dir->i_sb, de->d_ino);
+	if (!inode)
+		goto out_put_block;
+	if (inode->i_refcnt > 1 || i2mdi(inode)->i_nlinks > 2)
+		goto out_put_inode;
+
+	/* delete it from the data block of dir */
+	memset(de, 0x0, MINIX_DENTRY_SIZE);
+	minix_inode_dirty_block(dir, block);
+	/* modify dir inode */
+	i2mdi(dir)->i_nlinks--;
+	minix_inode_dirty(inode);
+	/* delete inode */
+	minix_put_inode(inode);
+	r = 0;
+
+out_put_inode:
+	put_inode(inode);
+out_put_block:
+	put_block(block);
+	return r;
 }
 
 /*

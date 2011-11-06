@@ -110,3 +110,16 @@ struct inode *inode_mkdir(char *path)
 	return inode;
 }
 
+int inode_rmdir(char *path)
+{
+	struct inode *dir;
+	char *basename;
+	int len, r = -1;
+	dir = path_lookup_dir(path, &basename, &len);
+	if (dir) {
+		if (len > 0 && dir->i_ops && dir->i_ops->rmdir)
+			r = dir->i_ops->rmdir(dir, basename, len);
+		put_inode(dir);
+	}
+	return r;
+}

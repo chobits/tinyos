@@ -46,6 +46,8 @@ struct block;
 #define INODE_MAP_BLOCKS(sb)	DIV_UP((sb)->s_ninodes, BITS_PER_BLOCK)
 #define ZONE_MAP_BLOCKS(sb)	DIV_UP((sb)->s_nzones - (sb)->s_firstdatazone, BITS_PER_BLOCK)
 #define ZONE_MAP_START_BLK(sb)	((sb)->s_imap_blocks + 2)
+#define ZONE_MAP_BLK(sb, blk)	(ZONE_MAP_START_BLK(sb) + ((((blk) - (sb)->s_firstdatazone + 1)) / BITS_PER_BLOCK))
+#define ZONE_MAP_BLKOFF(sb, blk)	(((blk) - (sb)->s_firstdatazone + 1) & BITS_PER_BLOCK_MASK)
 #define INODE_MAP_BLK(ino)	(2 + (ino) / BITS_PER_BLOCK)
 #define BLOCK2INODE(b, i)	((struct minix_d_inode *)(b)->b_data + ((i) - 1) % INODES_PER_BLOCK)
 
@@ -106,5 +108,7 @@ extern int bmap(struct inode *, int, int);
 extern void minix_inode_dirty_block(struct inode *inode, struct block *block);
 extern struct minix_d_inode *imap_new_inode(struct super_block *sb, int *rino, struct block **b);
 extern struct block *minix_new_block(struct super_block *sb, unsigned short *data);
+extern void bmap_put_blocks(struct inode *inode);
+extern void imap_put_inode(struct inode *inode);
 
 #endif	/* minix_fs.h */
