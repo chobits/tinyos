@@ -254,6 +254,7 @@ static int imap_create(struct super_block *sb)
 	while (i < n) {
 		block = minix_get_block(sb, i);
 		r = searchzerobit(block->b_data, BITS_PER_BLOCK, 1);
+		block->b_dirty = 1;
 		put_block(block);
 		if (r >= 0) {
 			r = (i - INODE_MAP_BLK(0)) * BITS_PER_BLOCK + r;
