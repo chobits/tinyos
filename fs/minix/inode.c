@@ -6,6 +6,7 @@
 #include <slab.h>
 #include <list.h>
 #include <block.h>
+#include <fs.h>
 
 int minix_inode_read(struct inode *inode, char *buf, size_t size, off_t off);
 int minix_inode_write(struct inode *inode, char *buf, size_t size, off_t off);
@@ -16,6 +17,8 @@ void minix_sync_inode(struct inode *inode);
 int minix_inode_getdir(struct inode *dir, int start, int num, struct dir_stat *ds);
 struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len);
 int minix_inode_rmdir(struct inode *dir, char *base, int len);
+int minix_inode_rm(struct inode *dir, char *base, int len);
+void minix_inode_stat(struct inode *inode, struct file_stat *stat);
 
 static struct inode_operations minix_iops = {
 	.read = minix_inode_read,
@@ -27,6 +30,8 @@ static struct inode_operations minix_iops = {
 	.getdir = minix_inode_getdir,
 	.mkdir = minix_inode_mkdir,
 	.rmdir = minix_inode_rmdir,
+	.rm = minix_inode_rm,
+	.stat = minix_inode_stat,
 };
 
 static struct slab *minix_inode_slab;
@@ -34,6 +39,18 @@ static struct slab *minix_inode_slab;
 #define MINIX_INODE_HASH_SIZE	(1 << MINIX_INODE_HASH_SHIFT)
 #define MINIX_INODE_HASH_MASK	(MINIX_INODE_HASH_SIZE - 1)
 static struct hlist_head minix_inode_htable[MINIX_INODE_HASH_SIZE];
+
+static _inline void minix_dec_link(struct inode *inode)
+{
+	i2mdi(inode)->i_nlinks--;
+	minix_inode_dirty(inode);
+}
+
+static _inline void minix_inc_link(struct inode *inode)
+{
+	i2mdi(inode)->i_nlinks++;
+	minix_inode_dirty(inode);
+}
 
 static void minix_inode_unhash(struct minix_inode *mi)
 {
@@ -326,7 +343,7 @@ struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len)
 	if (!(inode = minix_inode_create(dir, base, len)))
 		return NULL;
 	/* update dir inode information */
-	i2mdi(dir)->i_nlinks++;
+	minix_inc_link(dir);
 	/* update inode information */
 	i2mdi(inode)->i_mode = 0755 | S_IFDIR;
 	i2mdi(inode)->i_nlinks = 2;
@@ -350,9 +367,11 @@ struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len)
 	return inode;
 }
 
-int minix_inode_rmdir(struct inode *dir, char *base, int len)
+/* unlink can delete the (disk or memory)inode directly. */
+int minix_inode_unlink(struct inode *dir, char *base, int len,
+			int (*can_delete)(struct inode *))
 {
-	struct block *block;
+	struct block *block;		/* dir entry block */
 	struct minix_dentry *de;
 	struct inode *inode;
 	int r = -1;
@@ -360,28 +379,86 @@ int minix_inode_rmdir(struct inode *dir, char *base, int len)
 	de = minix_lookup_dentry(dir, base, len, &block);
 	if (!de)
 		return -1;
-
 	inode = minix_get_inode(dir->i_sb, de->d_ino);
 	if (!inode)
 		goto out_put_block;
-	if (inode->i_refcnt > 1 || i2mdi(inode)->i_nlinks > 2)
+	/* permission check */
+	if (inode->i_refcnt > 1)
+		goto out_put_inode;
+	if (can_delete && !can_delete(inode))
 		goto out_put_inode;
 
 	/* delete it from the data block of dir */
 	memset(de, 0x0, MINIX_DENTRY_SIZE);
 	minix_inode_dirty_block(dir, block);
-	/* modify dir inode */
-	i2mdi(dir)->i_nlinks--;
-	minix_inode_dirty(inode);
 	/* delete inode */
+	minix_dec_link(inode);
 	minix_put_inode(inode);
 	r = 0;
-
 out_put_inode:
 	put_inode(inode);
 out_put_block:
 	put_block(block);
 	return r;
+}
+
+static int minix_dir_empty(struct inode *dir)
+{
+	struct block *block;
+	struct minix_dentry *de;
+	int entries, i, k, n;
+	/* Assert that @dir is directory inode. */
+	entries = dir->i_size / MINIX_DENTRY_SIZE;
+	for (i = 0; i < entries; i += n) {
+		n = min(entries - i, MINIX_DENTRIES_PER_BLOCK);
+		block = bmap_block(dir, i / MINIX_DENTRIES_PER_BLOCK, 0);
+		if (!block)
+			continue;
+		de = (struct minix_dentry *)block->b_data;
+		for (k = 0; k < n; k++, de++) {
+			if (de->d_ino == 0)
+				continue;
+			if (de->d_name[0] != '.')
+				goto not_empty;
+			if (de->d_name[1] == '\0') {
+				if (de->d_ino != dir->i_ino)
+					panic("The inode number of . corrupts");
+				continue;
+			}
+			if (de->d_name[1] != '.' || de->d_name[2] != '\0')
+				goto not_empty;
+		}
+		put_block(block);
+	}
+	return 1;
+not_empty:
+	put_block(block);
+	return 0;
+}
+
+static int can_rmdir(struct inode *inode)
+{
+	if ((i2mdi(inode)->i_nlinks != 2) || !S_ISDIR(inode->i_mode))
+		return 0;
+	return minix_dir_empty(inode);
+}
+
+int minix_inode_rmdir(struct inode *dir, char *base, int len)
+{
+	int r = minix_inode_unlink(dir, base, len, can_rmdir);
+	if (r == 0)
+		minix_dec_link(dir);
+	return r;
+}
+
+static int can_rm(struct inode *inode)
+{
+	return ((i2mdi(inode)->i_nlinks == 1) && !S_ISDIR(inode->i_mode));
+}
+
+int minix_inode_rm(struct inode *dir, char *base, int len)
+{
+	return minix_inode_unlink(dir, base, len, can_rm);
 }
 
 /*
@@ -417,6 +494,11 @@ int minix_inode_getdir(struct inode *dir, int start, int num, struct dir_stat *d
 		put_block(block);
 	}
 	return r;
+}
+
+void minix_inode_stat(struct inode *inode, struct file_stat *stat)
+{
+	stat->link = i2mdi(inode)->i_nlinks;
 }
 
 void minix_inode_update_size(struct inode *inode, size_t size)

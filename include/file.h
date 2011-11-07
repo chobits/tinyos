@@ -35,5 +35,6 @@ extern struct file *file_mkdir(char *, unsigned int);
 extern int file_chdir(struct file *file);
 extern int file_getdir(struct file *file, int start, int num, struct dir_stat *ds);
 extern int file_rmdir(char *path);
+extern int file_rm(char *path);
 
 #endif	/* file.h */

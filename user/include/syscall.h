@@ -28,6 +28,7 @@ struct dir_stat;
 #define SYS_mkdir	18
 #define SYS_sync	19
 #define SYS_rmdir	20
+#define SYS_rm		21
 
 extern int usys_puts(char *);
 extern int usys_gets(char *, int);
@@ -49,5 +50,6 @@ extern int usys_fgetdir(int fd, int s, int n, struct dir_stat *ds);
 extern int usys_mkdir(char *, unsigned int);
 extern void usys_sync(void);
 extern int usys_rmdir(char *);
+extern int usys_rm(char *);
 
 #endif	/* syscall.h */

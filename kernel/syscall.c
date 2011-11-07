@@ -25,6 +25,7 @@ static syscall_t sys_call_table[SYS_CALL_MAX + 1] = {
 	__sys_call_entry(mkdir),
 	__sys_call_entry(sync),
 	__sys_call_entry(rmdir),
+	__sys_call_entry(rm),
 };
 
 void do_sys_call(struct regs *reg)

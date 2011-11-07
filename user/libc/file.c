@@ -81,6 +81,11 @@ int rmdir(char *path)
 	return usys_rmdir(path);
 }
 
+int rm(char *path)
+{
+	return usys_rm(path);
+}
+
 void sync(void)
 {
 	usys_sync();

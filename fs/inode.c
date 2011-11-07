@@ -75,6 +75,8 @@ void inode_stat(struct inode *inode, struct file_stat *stat)
 	stat->inode = inode->i_ino;
 	stat->mode = inode->i_mode;
 	stat->iref = inode->i_refcnt;
+	if (inode->i_ops && inode->i_ops->stat)
+		inode->i_ops->stat(inode, stat);
 }
 
 void inode_chdir(struct inode *inode)
@@ -119,6 +121,20 @@ int inode_rmdir(char *path)
 	if (dir) {
 		if (len > 0 && dir->i_ops && dir->i_ops->rmdir)
 			r = dir->i_ops->rmdir(dir, basename, len);
+		put_inode(dir);
+	}
+	return r;
+}
+
+int inode_rm(char *path)
+{
+	struct inode *dir;
+	char *basename;
+	int len, r = -1;
+	dir = path_lookup_dir(path, &basename, &len);
+	if (dir) {
+		if (len > 0 && dir->i_ops && dir->i_ops->rm)
+			r = dir->i_ops->rm(dir, basename, len);
 		put_inode(dir);
 	}
 	return r;

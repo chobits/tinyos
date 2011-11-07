@@ -165,3 +165,9 @@ int file_rmdir(char *path)
 {
 	return inode_rmdir(path);
 }
+
+int file_rm(char *path)
+{
+	return inode_rm(path);
+}
+

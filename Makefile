@@ -17,7 +17,8 @@ export Q LD AS CC NM OBJDUMP OBJCOPY CFLAGS
 KVM	= qemu-kvm
 KLINK	= -T kernel.ld
 USER_APPS = user/init user/hello user/sh user/cat user/stat user/ls user/mkdir\
-		user/sync user/rmdir
+		user/sync user/rmdir user/rm
+export USER_APPS
 
 OBJS	= kernel/kernel.o mm/mm.o video/video.o fs/fs.o keyboard/keyboard.o
 
@@ -106,6 +107,12 @@ nbochs:disk.img
 tag:
 	$(Q)$(CTAGS) -R *
 	@echo " [CTAGS]"
+
+fsck:disk.img
+	-sudo losetup /dev/loop0 -o $(shell cat .offset) disk.img
+	-sudo fsck.minix /dev/loop0
+	-sudo losetup -d /dev/loop0
+
 
 mount:disk.img
 	mkdir -p minixdir

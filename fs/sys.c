@@ -185,3 +185,8 @@ int sys_rmdir(char *path)
 {
 	return file_rmdir(path);
 }
+
+int sys_rm(char *path)
+{
+	return file_rm(path);
+}

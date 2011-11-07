@@ -67,7 +67,7 @@ struct key_desc {
 //#define KEY_'		0x28
 //#define KEY_`		0x29
 #define KEY_LSHIFT	0x2A
-//#define KEY_\		0x2B
+#define KEY_BACKSLASH	0x2B	/* \ */
 #define KEY_Z		0x2C
 #define KEY_X		0x2D
 #define KEY_C		0x2E
@@ -77,7 +77,7 @@ struct key_desc {
 #define KEY_M		0x32
 //#define KEY_<		0x33
 //#define KEY_>		0x34
-#define KEY_QUESTION	0x35
+#define KEY_SLASH	0x35	/* / ? */
 #define KEY_RSHIFT	0x36
 #define KEY_37
 #define KEY_ALT		0x38

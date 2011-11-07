@@ -118,3 +118,8 @@ int usys_rmdir(char *path)
 {
 	return usyscall(SYS_rmdir, (u32)path, 0, 0, 0, 0);
 }
+
+int usys_rm(char *path)
+{
+	return usyscall(SYS_rm, (u32)path, 0, 0, 0, 0);
+}
