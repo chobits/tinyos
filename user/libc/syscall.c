@@ -123,3 +123,8 @@ int usys_rm(char *path)
 {
 	return usyscall(SYS_rm, (u32)path, 0, 0, 0, 0);
 }
+
+int usys_truncate(int fd)
+{
+	return usyscall(SYS_truncate, (u32)fd, 0, 0, 0, 0);
+}

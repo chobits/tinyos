@@ -90,3 +90,8 @@ void sync(void)
 {
 	usys_sync();
 }
+
+int truncate(int fd)
+{
+	return usys_truncate(fd);
+}

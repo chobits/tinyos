@@ -29,6 +29,7 @@ extern int mkdir(char *, unsigned int);
 extern int rmdir(char *);
 extern int rm(char *);
 extern void sync(void);
+extern int truncate(int);
 
 #define S_IFMT		00170000
 #define S_IFSOCK	0140000

@@ -57,5 +57,6 @@ extern void inode_update_size(struct inode *inode, size_t size);
 extern int inode_rmdir(char *path);
 extern int inode_rm(char *path);
 extern struct inode *inode_sub_lookup_put(struct inode *, char *, int);
+extern int inode_truncate(struct inode *);
 
 #endif	/* inode.h */

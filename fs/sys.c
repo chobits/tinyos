@@ -190,3 +190,14 @@ int sys_rm(char *path)
 {
 	return file_rm(path);
 }
+
+int sys_truncate(int fd)
+{
+	struct file *file = fd_get_file(fd);
+	int r = -1;
+	if (!file)
+		return -1;
+	r = file_truncate(file);
+	put_file(file);
+	return r;
+}

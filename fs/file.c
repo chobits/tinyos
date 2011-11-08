@@ -171,3 +171,13 @@ int file_rm(char *path)
 	return inode_rm(path);
 }
 
+int file_truncate(struct file *file)
+{
+	int r = -1;
+	get_file(file);
+	if (file->f_inode)
+		r = inode_truncate(file->f_inode);
+	put_file(file);
+	return r;
+
+}

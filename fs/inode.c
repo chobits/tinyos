@@ -53,10 +53,14 @@ int inode_write(struct inode *inode, char *buf, size_t size, off_t off)
 	return r;
 }
 
-void inode_truncate(struct inode *inode)
+int inode_truncate(struct inode *inode)
 {
-	if (S_ISREG(inode->i_mode) && inode->i_ops && inode->i_ops->truncate)
+	int r = -1;
+	if (S_ISREG(inode->i_mode) && inode->i_ops && inode->i_ops->truncate) {
 		inode->i_ops->truncate(inode);
+		r = 0;
+	}
+	return r;
 }
 
 struct inode *inode_open(char *path, unsigned int mode)

@@ -26,6 +26,11 @@ int check(int src, int dst)
 		printf("%s is not regular file\n", dfile);
 		return -1;
 	}
+	/* truncate it */
+	if (truncate(dst) < 0) {
+		printf("%s cannot be truncated\n", dfile);
+		return -1;
+	}
 	return 0;
 }
 
@@ -58,7 +63,7 @@ int main(int argc, char **argv)
 	src = open(sfile, 0);
 	if (src < 0)
 		goto out;
-	dst = open(dfile, O_CREATE | O_TRUNCATE);
+	dst = open(dfile, O_CREATE);
 	if (dst < 0)
 		goto out_close;
 	/* check the files */
