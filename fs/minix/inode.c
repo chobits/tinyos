@@ -8,35 +8,8 @@
 #include <block.h>
 #include <fs.h>
 
-int minix_inode_read(struct inode *inode, char *buf, size_t size, off_t off);
-int minix_inode_write(struct inode *inode, char *buf, size_t size, off_t off);
-struct inode *minix_inode_sub_lookup(struct inode *dir, char *base, int len);
-void minix_inode_update_size(struct inode *inode, size_t size);
-void minix_inode_release(struct inode *inode);
-void minix_sync_inode(struct inode *inode);
-int minix_inode_getdir(struct inode *dir, int start, int num, struct dir_stat *ds);
-struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len);
-int minix_inode_rmdir(struct inode *dir, char *base, int len);
-int minix_inode_rm(struct inode *dir, char *base, int len);
-void minix_inode_stat(struct inode *inode, struct file_stat *stat);
-struct inode *minix_inode_create(struct inode *dir, char *base, int len);
-void minix_inode_truncate(struct inode *inode);
-
-static struct inode_operations minix_iops = {
-	.read = minix_inode_read,
-	.write = minix_inode_write,
-	.sub_lookup = minix_inode_sub_lookup,
-	.update_size = minix_inode_update_size,
-	.release = minix_inode_release,
-	.sync = minix_sync_inode,
-	.getdir = minix_inode_getdir,
-	.mkdir = minix_inode_mkdir,
-	.create = minix_inode_create,
-	.rmdir = minix_inode_rmdir,
-	.rm = minix_inode_rm,
-	.stat = minix_inode_stat,
-	.truncate = minix_inode_truncate,
-};
+static struct inode_operations minix_reg_iops;
+static struct inode_operations minix_dir_iops;
 
 static struct slab *minix_inode_slab;
 #define MINIX_INODE_HASH_SHIFT	4
@@ -82,8 +55,11 @@ struct minix_inode *minix_alloc_inode(struct super_block *sb,
 		inode->i_sb = sb;
 		inode->i_mode = mdi->i_mode;
 		inode->i_refcnt = 1;
-		inode->i_ops = &minix_iops;
 		inode->i_dbc = NULL;
+		if (S_ISDIR(inode->i_mode))
+			inode->i_ops = &minix_dir_iops;
+		else	/* Other types use regular ops defaultly. */
+			inode->i_ops = &minix_reg_iops;
 		/* init minix inode */
 		mi->m_dinode = mdi;
 		mi->m_iblock = block;
@@ -352,6 +328,7 @@ struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len)
 	i2mdi(inode)->i_mode = 0755 | S_IFDIR;
 	i2mdi(inode)->i_nlinks = 2;
 	inode->i_mode = 0755 | S_IFDIR;
+	inode->i_ops = &minix_dir_iops;
 	inode_update_size(inode, 2 * MINIX_DENTRY_SIZE);
 	/* create dir entry "." and ".." */
 	block = minix_new_block(dir->i_sb, &i2mdi(inode)->i_zone[0]);
@@ -539,3 +516,29 @@ void minix_inode_init(void)
 	for (i = 0; i < MINIX_INODE_HASH_SIZE; i++)
 		hlist_head_init(&minix_inode_htable[i]);
 }
+
+/* regular directory operations */
+static struct inode_operations minix_dir_iops = {
+	.sub_lookup = minix_inode_sub_lookup,
+	.update_size = minix_inode_update_size,
+	.release = minix_inode_release,
+	.sync = minix_sync_inode,
+	.getdir = minix_inode_getdir,
+	.mkdir = minix_inode_mkdir,
+	.rmdir = minix_inode_rmdir,
+	.create = minix_inode_create,
+	.rm = minix_inode_rm,
+	.stat = minix_inode_stat,
+};
+
+/* regular file operations */
+static struct inode_operations minix_reg_iops = {
+	.read = minix_inode_read,
+	.write = minix_inode_write,
+	.update_size = minix_inode_update_size,
+	.release = minix_inode_release,
+	.sync = minix_sync_inode,
+	.stat = minix_inode_stat,
+	.truncate = minix_inode_truncate,
+};
+

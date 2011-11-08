@@ -297,8 +297,7 @@ struct minix_d_inode *imap_get_inode(struct super_block *sb, unsigned int ino,
 	return BLOCK2INODE(block, ino);
 }
 
-struct minix_d_inode *imap_new_inode(struct super_block *sb, int *rino,
-		struct block **b)
+struct minix_d_inode *imap_new_inode(struct super_block *sb, int *rino, struct block **b)
 {
 	struct minix_d_inode *mdi;
 	struct block *block;
@@ -311,7 +310,7 @@ struct minix_d_inode *imap_new_inode(struct super_block *sb, int *rino,
 	/* init minix disk inode */
 	mdi = BLOCK2INODE(block, ino);
 	memset(mdi, 0x0, sizeof(*mdi));
-	mdi->i_mode = 0755 | S_IFREG;	/* default type: regular file */
+	mdi->i_mode = S_IFREG | 0755;	/* default type: regular file */
 	mdi->i_nlinks = 1;
 	/* minix disk inode is dirty */
 	block->b_dirty = 1;
