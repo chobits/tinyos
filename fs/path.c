@@ -10,7 +10,8 @@ struct inode *inode_sub_lookup(struct inode *dir, char *basename, int len)
 		inode = dir->i_ops->sub_lookup(dir, basename, len);
 	return inode;
 }
-static struct inode *inode_sub_lookup_put(struct inode *dir, char *base, int len)
+
+struct inode *inode_sub_lookup_put(struct inode *dir, char *base, int len)
 {
 	struct inode *inode = inode_sub_lookup(dir, base, len);
 	put_inode(dir);
@@ -102,22 +103,5 @@ struct inode *path_lookup_dir(char *path, char **basename, int *baselen)
 	if (baselen)
 		*baselen = len;
 	return dir;
-}
-
-struct inode *inode_path_lookup(char *path)
-{
-	struct inode *dir;
-	char *basename;
-	int len;
-	dir = path_lookup_dir(path, &basename, &len);
-	if (!dir)
-		return NULL;
-	if (len == 0) {
-		/* for "/" ,"//", "///", ... */
-		if (dir == ctask->fs.root_dir)
-			return dir;
-		return NULL;
-	}
-	return inode_sub_lookup_put(dir, basename, len);
 }
 

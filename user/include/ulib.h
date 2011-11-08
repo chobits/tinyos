@@ -65,6 +65,9 @@ extern void sync(void);
 #define S_IWOTH		00002
 #define S_IXOTH		00001
 
+#define O_CREATE	0x80000000
+#define O_TRUNCATE	0x40000000
+
 #define SEEK_SET 0
 #define SEEK_CUR 1
 #define SEEK_END 2

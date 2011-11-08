@@ -53,9 +53,35 @@ int inode_write(struct inode *inode, char *buf, size_t size, off_t off)
 	return r;
 }
 
-struct inode *inode_open(char *path)
+void inode_truncate(struct inode *inode)
 {
-	return inode_path_lookup(path);
+	if (S_ISREG(inode->i_mode) && inode->i_ops && inode->i_ops->truncate)
+		inode->i_ops->truncate(inode);
+}
+
+struct inode *inode_open(char *path, unsigned int mode)
+{
+	struct inode *dir, *inode;
+	char *basename;
+	int len;
+	dir = path_lookup_dir(path, &basename, &len);
+	if (!dir)
+		return NULL;
+	if (len == 0) {
+		/* for "/" ,"//", "///", ... */
+		if (dir == ctask->fs.root_dir)
+			return dir;
+		return NULL;
+	}
+	inode = inode_sub_lookup_put(dir, basename, len);
+	/* Not exist and create it? */
+	if (!inode && (mode & O_CREATE)) {
+		if (dir->i_ops && dir->i_ops->create)
+			inode = dir->i_ops->create(dir, basename, len);
+	}
+	if (inode && (mode & O_TRUNCATE))
+		inode_truncate(inode);
+	return inode;
 }
 
 void inode_close(struct inode *inode)

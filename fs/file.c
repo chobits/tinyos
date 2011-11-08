@@ -39,7 +39,7 @@ struct file *file_open(char *path, unsigned int mode)
 {
 	struct file *file;
 	struct inode *inode;
-	inode = inode_open(path);
+	inode = inode_open(path, mode);
 	if (!inode)
 		return NULL;
 	file = alloc_file(inode, mode);

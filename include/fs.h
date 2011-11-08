@@ -66,4 +66,7 @@ struct dir_stat {
 #define SEEK_CUR	1
 #define SEEK_END	2
 
+#define O_CREATE	0x80000000
+#define O_TRUNCATE	0x40000000
+
 #endif	/* fs.h */

@@ -19,6 +19,8 @@ struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len);
 int minix_inode_rmdir(struct inode *dir, char *base, int len);
 int minix_inode_rm(struct inode *dir, char *base, int len);
 void minix_inode_stat(struct inode *inode, struct file_stat *stat);
+struct inode *minix_inode_create(struct inode *dir, char *base, int len);
+void minix_inode_truncate(struct inode *inode);
 
 static struct inode_operations minix_iops = {
 	.read = minix_inode_read,
@@ -29,9 +31,11 @@ static struct inode_operations minix_iops = {
 	.sync = minix_sync_inode,
 	.getdir = minix_inode_getdir,
 	.mkdir = minix_inode_mkdir,
+	.create = minix_inode_create,
 	.rmdir = minix_inode_rmdir,
 	.rm = minix_inode_rm,
 	.stat = minix_inode_stat,
+	.truncate = minix_inode_truncate,
 };
 
 static struct slab *minix_inode_slab;
@@ -499,6 +503,12 @@ int minix_inode_getdir(struct inode *dir, int start, int num, struct dir_stat *d
 void minix_inode_stat(struct inode *inode, struct file_stat *stat)
 {
 	stat->link = i2mdi(inode)->i_nlinks;
+}
+
+void minix_inode_truncate(struct inode *inode)
+{
+	bmap_put_blocks(inode);
+	inode_update_size(inode, 0);
 }
 
 void minix_inode_update_size(struct inode *inode, size_t size)
