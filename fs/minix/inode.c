@@ -334,7 +334,6 @@ struct inode *minix_inode_mkdir(struct inode *dir, char *base, int len)
 	block = minix_new_block(dir->i_sb, &i2mdi(inode)->i_zone[0]);
 	if (!block)
 		panic("Cannot alloc new block for minixfs");
-	memset(block->b_data, 0x0, MINIX_BLOCK_SIZE);
 	/* "." */
 	de = (struct minix_dentry *)block->b_data;
 	strcpy(de->d_name, ".");

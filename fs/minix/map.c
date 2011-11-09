@@ -29,12 +29,30 @@ int minix_new_block_nr(struct super_block *sb)
 
 struct block *minix_new_block(struct super_block *sb, unsigned short *data)
 {
+	struct block *block;
 	int blk = minix_new_block_nr(sb);
 	if (blk < 0)
 		return NULL;
 	if (data)
 		*data = blk;
-	return minix_get_block(sb, blk);
+	block = minix_get_block(sb, blk);
+	/*
+	 * Clear the block, not setting dirty flag:
+	 *  ( minix_new_block is used by minix_inode_mkdir() and bmap().
+	 *    If dirty flag is set, minix_inode_dirty_block() cannot add
+	 *    the dirty block to inode dirty block cache. )
+	 *
+	 * bmap() uses it to alloc 1/2-level indirect block, which must be
+	 *  zeroed, otherwise the old block number in indirect block will be
+	 *  used incorrectly.
+	 *
+	 * This change will fix the bug:
+	 *  Running command `cp rm r; rm r; cp rm r; rm r`, we get a panic:
+	 *  "Clear unexist-zone bitmap".
+	 */
+	if (block)
+		memset(block->b_data, 0x0, block->b_size);
+	return block;
 }
 
 int bmap(struct inode *inode, int blk, int create)
