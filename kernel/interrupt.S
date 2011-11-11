@@ -85,4 +85,9 @@ interrupt_return:
 	iret
 
 ENTRY(fork_child_return)
+	/* send EOI of timer interrupt */
+	pushl $INTNO_IRQ0
+	call EOI_8259A
+	addl $4, %esp
+	/* return to usermode */
 	jmp interrupt_return
