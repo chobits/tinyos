@@ -125,9 +125,9 @@ umount:
 	rm -rf minixdir
 
 clean:
-	rm -rf */*/*.o */*.o *.asm *.sym */*.asm */*.sym *.elf *.bin */*.elf */*.bin
-	rm -rf $(USER_APPS)
+	find . -regex ".*\.\(o\|sym\|asm\|elf\|bin\)" -exec rm -f {} ';'
 	rm -rf tools/mkfs.minix tools/build tags .offset disk.img
+	rm -rf $(USER_APPS)
 
 lines:
 	@echo "code lines:"
