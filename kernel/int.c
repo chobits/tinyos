@@ -55,6 +55,7 @@ void unmask_8259A(int irq)
 extern void do_page_fault(struct regs *);
 extern void do_sys_call(struct regs *);
 extern void keyboard_interrupt(struct regs *);
+extern void timer_interrupt(struct regs *);
 
 /* All traps, faults, fatals and hardware interrupt handler */
 void interrupt_handler(int nr, struct regs *reg)
@@ -64,7 +65,16 @@ void interrupt_handler(int nr, struct regs *reg)
 		panic("Unknown interrupt %d", nr);
 	}
 
+	/*
+	 * IRQs are mutually exclusive.
+	 * IRQ can preempt other traps and syscalls.
+	 */
 	switch (nr) {
+#ifdef TIMER_INT_SCHED
+	case INTNO_IRQ0:
+		timer_interrupt(reg);
+		break;
+#endif
 	case INTNO_IRQ1:
 		keyboard_interrupt(reg);
 		break;
@@ -82,10 +92,12 @@ void interrupt_handler(int nr, struct regs *reg)
 		break;
 	}
 
-	/* send end of interrupt signal to PIC chip (not autoeoi mode) */
+	/*
+	 * send end of interrupt signal to PIC chip (not autoeoi mode)
+	 * (If no EOI is sent, other hardware irq will not be accepted!)
+	 */
 	if (nr >= INTNO_IRQ0 && nr <= INTNO_IRQ15)
 		EOI_8259A(nr - INTNO_IRQ0);
-
 }
 
 static struct desc idt[IDT_SIZE];
@@ -111,7 +123,7 @@ void int_init(void)
 	set_trap_gate(INTNO_NP, np_entry);
 	set_trap_gate(INTNO_SS, ss_entry);
 	set_trap_gate(INTNO_GP, gp_entry);
-	set_trap_gate(INTNO_PF, pf_entry);
+	set_int_gate(INTNO_PF, pf_entry);	/* page fault cannot allow interrupt. */
 	/* Vector 15 iS reserved */
 	set_trap_gate(INTNO_MF, mf_entry);
 	set_trap_gate(INTNO_AC, ac_entry);

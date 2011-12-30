@@ -103,6 +103,8 @@ void clone_task_context(struct regs *preg, struct task *child)
 	struct regs *creg = (struct regs *)child->kstacktop - 1;
 	*creg = *preg;
 	creg->eax = 0;		/* Child returns 0 out of fork(). */
+	if (!(creg->eflags & EFLAGS_IF))
+		panic("has no IF flag");
 	child->con.esp = (unsigned int)creg;
 	child->con.eip = (unsigned int)fork_child_return;
 }

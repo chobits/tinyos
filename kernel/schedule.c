@@ -38,18 +38,32 @@ void task_switch(struct task *next)
 		: "memory");
 }
 
+void debug_task(void)
+{
+	struct task *task;
+	for_each_task(task) {
+		if (task->state == TASK_RUNNABLE)
+			printk("[%d]", task->pid);
+	}
+}
+
 void schedule(void)
 {
 	struct task *task, *next = NULL;
+
+	/* FIXME: add lock to solve race condition for task_list */
 	for_each_task(task) {
 		if (task == ctask || task->state != TASK_RUNNABLE)
 			continue;
 		if (!next || task->priority > next->priority)
 			next = task;
 	}
+
 	if (!next) {
-		if (ctask == &init_task)
+		if (ctask == &init_task) {
+			debug_task();
 			return;
+		}
 		next = &init_task;
 	}
 	next->priority--;

@@ -70,7 +70,9 @@ void sys_exit(int status)
 	task_exit(ctask);
 	/* No return */
 	schedule();
-	panic("task exiting fails");
+	if (ctask)
+		printk("%d ", ctask->pid);
+	panic("task exiting fails: %d");
 }
 
 void task_wait_exit(struct task *parent, struct task *task)
