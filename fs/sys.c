@@ -1,5 +1,7 @@
+#include <inode.h>
 #include <print.h>
 #include <file.h>
+#include <slab.h>
 #include <task.h>
 #include <fs.h>
 
@@ -200,4 +202,15 @@ int sys_truncate(int fd)
 	r = file_truncate(file);
 	put_file(file);
 	return r;
+}
+
+int sys_getcwd(char *buf, size_t size)
+{
+	struct inode *inode;
+
+	inode = ctask->fs.current_dir;
+	if (!inode)
+		return -1;
+
+	return inode_get_pathname(inode, buf, size);
 }

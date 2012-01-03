@@ -481,6 +481,24 @@ void minix_inode_stat(struct inode *inode, struct file_stat *stat)
 	stat->link = i2mdi(inode)->i_nlinks;
 }
 
+int minix_get_pathname(struct inode *inode, char *pathname, size_t len)
+{
+	struct minix_dentry *de;
+
+	if (len < MINIX_NAME_LEN + 1)
+		return -1;
+
+	de = minix_lookup_dentry(inode, ".", 1, NULL);
+	if (!de)
+		return -1;
+
+	strncpy(pathname, de->d_name, MINIX_NAME_LEN);
+
+	pathname[MINIX_NAME_LEN] = '\0';
+
+	return 0;
+}
+
 void minix_inode_truncate(struct inode *inode)
 {
 	bmap_put_blocks(inode);
@@ -528,6 +546,7 @@ static struct inode_operations minix_dir_iops = {
 	.create = minix_inode_create,
 	.rm = minix_inode_rm,
 	.stat = minix_inode_stat,
+	.get_pathname = minix_get_pathname,
 };
 
 /* regular file operations */

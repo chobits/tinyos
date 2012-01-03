@@ -30,6 +30,7 @@ extern int rmdir(char *);
 extern int rm(char *);
 extern void sync(void);
 extern int truncate(int);
+extern char *getcwd(char *buf, size_t size);
 
 #define S_IFMT		00170000
 #define S_IFSOCK	0140000

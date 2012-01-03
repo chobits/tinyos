@@ -30,6 +30,7 @@ struct dir_stat;
 #define SYS_rmdir	20
 #define SYS_rm		21
 #define SYS_truncate	22
+#define SYS_getcwd	23
 
 extern int usys_puts(char *);
 extern int usys_gets(char *, int);
@@ -53,5 +54,6 @@ extern void usys_sync(void);
 extern int usys_rmdir(char *);
 extern int usys_rm(char *);
 extern int usys_truncate(int);
+extern int usys_getcwd(char *buf, size_t size);
 
 #endif	/* syscall.h */
