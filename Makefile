@@ -17,7 +17,7 @@ export Q LD AS CC NM OBJDUMP OBJCOPY CFLAGS
 KVM	= qemu-kvm
 KLINK	= -T kernel.ld
 USER_APPS = user/init user/hello user/sh user/cat user/stat user/ls user/mkdir\
-		user/sync user/rmdir user/rm user/cp
+		user/sync user/rmdir user/rm user/cp user/pwd
 export USER_APPS
 
 OBJS	= kernel/kernel.o mm/mm.o video/video.o fs/fs.o keyboard/keyboard.o

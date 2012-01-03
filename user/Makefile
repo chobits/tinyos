@@ -42,6 +42,9 @@ rm:utils/rm.o libc/libc.o
 cp:utils/cp.o libc/libc.o
 	$(Q)$(LD) $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
+pwd:utils/pwd.o libc/libc.o
+	$(Q)$(LD) $^ -o $@
+	@echo " [LD]  $(SUBDIR)/$@"
 
 # objects
 %.o:%.c
