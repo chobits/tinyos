@@ -30,7 +30,8 @@ typedef u32 (*syscall_t)(u32, u32, u32, u32, u32);
 #define SYS_rmdir	20
 #define SYS_rm		21
 #define SYS_truncate	22
-#define SYS_CALL_MAX	22
+#define SYS_getcwd	23
+#define SYS_CALL_MAX	23
 
 extern int sys_puts(char *);
 extern int sys_gets(char *, int);
@@ -54,5 +55,6 @@ extern void sys_sync(void);
 extern int sys_rmdir(char *);
 extern int sys_rm(char *);
 extern int sys_truncate(int);
+extern int sys_getcwd(char *buf, size_t size);
 
 #endif	/* syscall.h */

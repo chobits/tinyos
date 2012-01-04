@@ -95,3 +95,11 @@ int truncate(int fd)
 {
 	return usys_truncate(fd);
 }
+
+char *getcwd(char *buf, size_t size)
+{
+	if (usys_getcwd(buf, size))
+		return NULL;
+
+	return buf;
+}

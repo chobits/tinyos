@@ -128,3 +128,8 @@ int usys_truncate(int fd)
 {
 	return usyscall(SYS_truncate, (u32)fd, 0, 0, 0, 0);
 }
+
+int usys_getcwd(char *buf, size_t size)
+{
+	return usyscall(SYS_getcwd, (u32)buf, (u32)size, 0, 0, 0);
+}
