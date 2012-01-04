@@ -23,6 +23,7 @@ struct inode_operations {
 	int (*rm)(struct inode *, char *, int);
 	void (*stat)(struct inode *, struct file_stat *);
 	void (*truncate)(struct inode *);
+	int (*get_pathname)(struct inode *, char *, size_t);
 };
 
 struct inode {
@@ -58,5 +59,6 @@ extern int inode_rmdir(char *path);
 extern int inode_rm(char *path);
 extern struct inode *inode_sub_lookup_put(struct inode *, char *, int);
 extern int inode_truncate(struct inode *);
+extern int inode_get_pathname(struct inode *, char *, size_t);
 
 #endif	/* inode.h */

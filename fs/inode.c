@@ -169,3 +169,8 @@ int inode_rm(char *path)
 	}
 	return r;
 }
+
+int inode_get_pathname(struct inode *inode, char *pathname, size_t len)
+{
+	return inode->i_ops->get_pathname(inode, pathname, len);
+}
