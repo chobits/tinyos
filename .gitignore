@@ -1,4 +1,6 @@
 *.o
+*.sym
+*.asm
 .offset
 boot/boot.bin
 boot/boot.elf
@@ -18,4 +20,5 @@ user/rmdir
 user/sh
 user/stat
 user/sync
+user/pwd
 
