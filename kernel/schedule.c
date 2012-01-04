@@ -61,7 +61,9 @@ void schedule(void)
 
 	if (!next) {
 		if (ctask == &init_task) {
+#ifdef DEBUG_SCHED_TASK
 			debug_task();
+#endif
 			return;
 		}
 		next = &init_task;
