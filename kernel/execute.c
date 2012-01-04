@@ -75,6 +75,7 @@ int map_userspace(struct userspace *us, struct proghdr *ph, struct file *file)
 		if (!(p = kva_page(page)))
 			panic("cannot be converted to kva");
 		memset(p, 0x0, sz);
+		va += sz;
 		rsize += sz;
 	}
 	if (off + sz < PGSIZE)
