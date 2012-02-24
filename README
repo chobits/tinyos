@@ -16,5 +16,8 @@ Debug?
   # grep "some symbol" [boot/boot.sym | kernel.sym | user/*.sym]
   ...
 
+Documentation:
+ See doc/*.txt
+
 Author?
  Xiaochen Wang <wangxiaochen0@gmail.com>

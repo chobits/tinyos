@@ -1,0 +1,4 @@
+TODOLIST:
+- nic driver
+- merge tapip(github.com/chobits/tapip) as TCP/IP stack
+- lock
