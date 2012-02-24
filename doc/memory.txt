@@ -1,0 +1,52 @@
+How does tinyos manage memory?
+===
+
+1. All used memory management algorithm
+
+  -------------------+-----------------+------------------+------------------
+  Allocator          | Unit            | Example          |  Source
+  -------------------+-----------------+------------------+------------------
+  slab allocator     | size of         | inode,block,task |  mm/slab.c
+                     | alloced object  | kmalloc cubes    |
+  -------------------+-----------------+------------------+------------------
+  buddy algorithm    | 4KB page        |                  |  mm/buddy.c
+                     |                 |                  |  mm/page.c
+  -------------------+-----------------+------------------+------------------
+  boot-time physical | any size        |                  |  mm/boot_memory.c
+  memory allocator   | physical memory |                  |
+  -------------------+-----------------+------------------+------------------
+  paing mechanism    | 2-level, 4K page|                  |  mm/paging.c
+  -------------------+-----------------+------------------+------------------
+
+2. Memory Map
+
+ * Userspace Memory Map
+   ---------------------- 0xffff ffff
+   - [kernel space]
+   ---------------------- 0xc000 0000
+   -  4KB hole
+   ---------------------- 0xbfff f000
+   -  4KB user stack
+   ---------------------- 0xbfff e000
+   - [other parts]
+   ---------------------- 0x0000 0000
+
+
+ * Kernel Address Space                        Buddy Algorithm
+   ---------------------- 0xffff ffff -------- ---------------
+   -                                            HIGH MEMORY
+   ---------------------- 0xe000 0000 -------- ---------------
+   -
+   ---------------------- 0xc200 0000
+   - [not used spaces]
+   ---------------------- -----------
+   -  page_table[]
+   -  4KB kernel stack     alloced by           NORMAL MEMORY
+   -  4MB page table       bootmem
+   -  4KB page directory
+   ---------------------- -----------
+   - [4KB alignment]                  (_end)
+   -  kernel.elf in memory
+   ---------------------- 0xc100 0000 (_stext) ----------------
+   -                                            LOW MEMORY
+   ---------------------- 0xc000 0000 -------- ----------------
