@@ -33,9 +33,9 @@ How does tinyos manage memory?
 
 
  * Kernel Address Space                        Buddy Algorithm
-   ---------------------- 0xffff ffff -------- ---------------
+   ---------------------- 0xffff ffff ---*---> ---------------
    -                                            HIGH MEMORY
-   ---------------------- 0xe000 0000 -------- ---------------
+   ---------------------- 0xe000 0000 ---*---> ---------------
    -
    ---------------------- 0xc200 0000
    - [not used spaces]
@@ -49,4 +49,16 @@ How does tinyos manage memory?
    -  kernel.elf in memory
    ---------------------- 0xc100 0000 (_stext) ----------------
    -                                            LOW MEMORY
-   ---------------------- 0xc000 0000 -------- ----------------
+   ---------------------- 0xc000 0000 ---*---> ----------------
+
+   NOTE: '---*--->' means paging map from virtual address to physical address.
+
+
+ * Physical Address
+   ---------------------- 0x???? ????
+   - HIGH MEMORY  (???MB)
+   ---------------------- 0x3000 0000
+   - NORMAL MEMORY(752MB)
+   ---------------------- 0x0100 0000
+   - LOW MEMORY   (16MB)
+   ---------------------- 0x0000 0000
