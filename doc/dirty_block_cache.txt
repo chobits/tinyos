@@ -1,0 +1,31 @@
+Dirty Block Cache(dbc)
+---
+
+SRC:
+ fs/dirty_block.c
+
+APIS:
+ inode_add_dbc()
+ inode_sync_dbc()
+
+Related syscall:
+ sys_fsync(fd)
+
+How to use?
+ When fs(minixfs) makes block dirty related some inode, it just calls:
+   inode_add_dbc(inode, block)
+ Finally, fs wants to flush all dirty blocks related some inode, it calls:
+   inode_sync_dbc(inode)
+
+ The dirty block must be related with some inode
+   1. block which contains inode copy in disk (d_inode)
+   2. data block of some inode (block == minix_d_inode->i_zone[?]) 
+
+How to work?
+ dbc only caches block pointers, which is different from block buffer.
+  and every inode has a dbc pointer(NULL).
+ First call of inode_add_dbc will alloc a dbc for inode.
+ 
+Why?
+ Without dirty block cache, it will traverse all blocks of some inode
+ to detect whether the block is dirty, when user wants to sync some file.
