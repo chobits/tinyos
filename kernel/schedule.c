@@ -51,7 +51,12 @@ void schedule(void)
 {
 	struct task *task, *next = NULL;
 
-	/* FIXME: add lock to solve race condition for task_list */
+	/*
+	 *  FIXME: add lock to solve race condition for task_list
+	 *  FIXED: close interrupt when schedule is called() via interrupt level
+	 *   (schedule is called by sys_yield or timer_interrupt)
+	 */
+
 	for_each_task(task) {
 		if (task == ctask || task->state != TASK_RUNNABLE)
 			continue;
@@ -72,9 +77,14 @@ void schedule(void)
 	task_switch(next);
 }
 
+extern void close_interrupt(void);
+extern void open_interrupt(void);
+
 void sys_yield(void)
 {
+	close_interrupt();
 	schedule();
+	open_interrupt();
 }
 
 int sys_getpid(void)

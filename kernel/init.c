@@ -12,18 +12,15 @@ void fs_init(void);
 void pit_init(void);
 void keyboard_init(void);
 void load_first_program(char *, int, char **);
+void first_open_interrupt();
 
 void kidle(void)
 {
 	printk("Kernel is idle now\n\n");
 	/* Open interrupt */
-	sti();
+	first_open_interrupt();
 	while (1) {
-#ifdef TIMER_INT_SCHED
 		hlt();
-#else
-		schedule();
-#endif
 	}
 }
 
@@ -46,9 +43,7 @@ void init(void)
 	block_init();
 	fs_init();
 	keyboard_init();
-#ifdef TIMER_INT_SCHED
 	pit_init();
-#endif
 	load_init();
 	kidle();
 }

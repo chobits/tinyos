@@ -52,6 +52,29 @@ void unmask_8259A(int irq)
 	outb(port, value);
 }
 
+static int interrupt_level;
+void first_open_interrupt(void)
+{
+	interrupt_level = 0;
+	sti();
+}
+
+void open_interrupt(void)
+{
+	interrupt_level--;
+	if (interrupt_level == 0)
+		sti();
+	else if (interrupt_level < 0)
+		panic("interrupt_level = %d", interrupt_level);
+}
+
+void close_interrupt(void)
+{
+	if (interrupt_level == 0)
+		cli();
+	interrupt_level++;
+}
+
 extern void do_page_fault(struct regs *);
 extern void do_sys_call(struct regs *);
 extern void keyboard_interrupt(struct regs *);
@@ -65,16 +88,16 @@ void interrupt_handler(int nr, struct regs *reg)
 		panic("Unknown interrupt %d", nr);
 	}
 
+	interrupt_level++;
+
 	/*
 	 * IRQs are mutually exclusive.
 	 * IRQ can preempt other traps and syscalls.
 	 */
 	switch (nr) {
-#ifdef TIMER_INT_SCHED
 	case INTNO_IRQ0:
 		timer_interrupt(reg);
 		break;
-#endif
 	case INTNO_IRQ1:
 		keyboard_interrupt(reg);
 		break;
@@ -98,6 +121,8 @@ void interrupt_handler(int nr, struct regs *reg)
 	 */
 	if (nr >= INTNO_IRQ0 && nr <= INTNO_IRQ15)
 		EOI_8259A(nr - INTNO_IRQ0);
+
+	interrupt_level--;
 }
 
 static struct desc idt[IDT_SIZE];

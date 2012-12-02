@@ -2,11 +2,28 @@
 
 #define iprintf(fmt, args...) printf("/init: " fmt, ##args)
 
-int main(int argc, char **argv)
+void test_pit_sched(void)
 {
-	iprintf("we are now in user mode\n");
+	if (fork() == 0) {
+		if (fork() == 0) {
+			while (1) {
+				printf("C");
+				yield();	/* test interrupt_level in schedule() */
+			}
+		} else {
+			while (1) {
+				printf("X");
+			}
+		}
+	} else {
+		while (1)
+			printf("P");		/* test schedule() in timer interrupt */
 
-#ifdef TEST_FORK
+	}
+}
+
+void test_fork(void)
+{
 	int pid;
 	while (1) {
 		pid = fork();
@@ -20,11 +37,13 @@ int main(int argc, char **argv)
 			iprintf("Create child %d\n", pid);
 		}
 	}
-	while (1)
-		yield();
-#endif
+	while (1); yield();
+		//iprintf("> pid %d <\n", getpid());
 
-#ifdef TEST_EXIT
+}
+
+void test_exit(void)
+{
 	int pid;
 	int rv;
 refork:
@@ -61,10 +80,13 @@ refork_child:
 			iprintf("[p] Child %d exit %d\n", pid, rv);
 		goto refork;
 	}
-	while (1) ;
-#endif
 
-#ifdef TEST_EXEC
+	while (1) ;
+
+}
+
+void test_exec(void)
+{
 	char *argvs[] = { "hello", "world", "Haaaa!", NULL };
 	int pid;
 	int r;
@@ -85,19 +107,10 @@ refork:
 	else
 		iprintf("[%d] wait error\n");
 	goto refork;
-#endif
+}
 
-#ifdef TEST_EXEC_SAME
-	char *argvs[] = { "hello", "world", "Haaaa!", NULL };
-	int i;
-	for (i = 0; i < argc; i++)
-		iprintf("[%d] %s\n", i, argv[i]);
-	execute("init", 3, argvs);
-	iprintf("execute error\n");
-	while (1) ;
-#endif
-
-#ifdef TEST_OPEN_CLOSE
+void test_open_close(void)
+{
 	int fd;
 	char buf[4];
 	int size, i;
@@ -128,19 +141,24 @@ refork:
 	fd = close(fd);
 err:
 	while (1) ;
-#endif
 
-#ifdef TEST_GETS
+}
+
+void test_gets(void)
+{
 	char buf[64];
 	int size;
 	while ((size = gets(buf, 64)) > 0)
 		iprintf("[%d]%*s", size, size, buf);
 	iprintf("ERROR gets return %d\n", size);
 	while (1) ;
-#endif
+}
 
-#define TEST_SHELL
-#ifdef TEST_SHELL
+
+int main(int argc, char **argv)
+{
+	iprintf("in user mode\n");
+
 	int pid, rv;
 	pid = fork();
 	if (pid < 0) {
@@ -157,10 +175,6 @@ err:
 			iprintf("/sh exit error\n");
 	}
 
-	while (1)
-		yield();
-#endif
-	iprintf("I'm process %d\n", getpid());
 	while (1) ;
 	return 0;
 }

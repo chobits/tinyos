@@ -89,5 +89,6 @@ ENTRY(fork_child_return)
 	pushl $INTNO_IRQ0
 	call EOI_8259A
 	addl $4, %esp
+	call open_interrupt
 	/* return to usermode */
 	jmp interrupt_return
