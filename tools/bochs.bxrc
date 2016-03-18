@@ -22,8 +22,8 @@ log: /dev/null
 mouse: enabled=0
 
 # enable key mapping, using US layout as default.
-keyboard_mapping: enabled=1, map=$BXSHARE/keymaps/x11-pc-us.map
-keyboard_serial_delay: 250
-keyboard_paste_delay: 100000
+keyboard: keymap=$BXSHARE/keymaps/x11-pc-us.map
+keyboard: serial_delay=250
+keyboard: paste_delay=100000
 
 private_colormap: enabled=0
