@@ -2,7 +2,7 @@ LIBCSUBDIR = $(SUBDIR)/libc
 CFLAGS += -I../include
 
 libc.o:entry.o system.o syscall.o string.o print.o file.o
-	$(Q)$(LD) -r $^ -o $@
+	$(Q)$(LD) $(LDFLAGS) -r $^ -o $@
 	@echo " [LD]  $(LIBCSUBDIR)/$@"
 
 %.o:%.c

@@ -4,7 +4,7 @@ OBJS	= entry.o init.o interrupt.o int.o print.o string.o task.o execute.o\
 	syscall.o fork.o schedule.o exit.o wait_queue.o pit.o timer.o
 
 kernel.o:$(OBJS)
-	$(Q)$(LD) -r $^ -o $@
+	$(Q)$(LD) $(LDFLAGS) -r $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
 
 %.o:%.c

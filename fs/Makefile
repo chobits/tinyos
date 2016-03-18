@@ -5,7 +5,7 @@ SRC	= $(wildcard *.c)
 OBJS	= $(patsubst %.c, %.o, $(SRC)) minix/minixfs.o
 
 fs.o:$(OBJS)
-	$(Q)$(LD) -r $^ -o $@
+	$(Q)$(LD) $(LDFLAGS) -r $^ -o $@
 	@echo " [LD]  $(SUBDIR)/$@"
 
 minix/minixfs.o:minix/*.c

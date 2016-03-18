@@ -6,7 +6,7 @@ boot.bin:boot.elf
 	@echo " [GEN]  $(SUBDIR)/$@"
 
 boot.elf:boot.o main.o
-	$(Q)$(LD) -N -Ttext=0x0000 -e boot_start $^ -o boot.elf
+	$(Q)$(LD) $(LDFLAGS) -N -Ttext=0x0000 -e boot_start $^ -o boot.elf
 	@echo " [LD]  $(SUBDIR)/$@"
 
 main.o:main.c

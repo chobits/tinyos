@@ -11,8 +11,9 @@ MKFS	= tools/mkfs.minix
 CTAGS	= ctags
 OBJDUMP	= objdump
 OBJCOPY	= objcopy
-CFLAGS	= -Wall -Werror -fno-builtin -nostdinc -nostdlib -I../include -g
-export Q LD AS CC NM OBJDUMP OBJCOPY CFLAGS
+CFLAGS	= -Wall -Werror -fno-builtin -nostdinc -nostdlib -I../include -g -m32
+LDFLAGS = -m elf_i386
+export Q LD AS CC NM OBJDUMP OBJCOPY CFLAGS LDFLAGS
 
 KVM	= qemu-kvm
 KLINK	= -T kernel.ld
