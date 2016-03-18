@@ -1,12 +1,18 @@
-What is chos?
+chos
+====
  A monolithic 32-bit kernel.
 
-Quick start?
+Quick start
+===========
+```
   # make                <- compile and generate bootable disk image
   # make loaduser       <- install basic usermode programs into disk image
   # make [bochs|kvm]    <- run it in bochs or kvm
+```
 
-Debug?
+Debug
+=====
+```
   # make debug
   # gdb -q [boot/boot.elf | kernel.elf | user/*]
   ...
@@ -14,9 +20,8 @@ Debug?
   ...
   # grep "some symbol" [boot/boot.sym | kernel.sym | user/*.sym]
   ...
+```
 
-Documentation:
+Documentation
+=============
  See doc/*.txt
-
-Author?
- Xiaochen Wang <wangxiaochen0@gmail.com>
