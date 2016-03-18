@@ -85,7 +85,7 @@ RMDIRS = $(shell seq -s ' ' 20 40 | sed 's/\([0-9]\+\)/minixdir\/dir\/\1/g')
 loaduser:disk.img
 	-mkdir -p minixdir
 	-sudo losetup /dev/loop0 -o $(shell cat .offset) disk.img
-	-sudo mount -t minix /dev/loop0 minixdir
+	sudo mount -t minix /dev/loop0 minixdir
 	-sudo cp $(USER_APPS) minixdir/
 	-sudo mkdir -p minixdir/dir
 	-sudo mkdir -p minixdir/dir/dir1
@@ -126,9 +126,10 @@ umount:
 	rm -rf minixdir
 
 clean:
-	find . -regex ".*\.\(o\|sym\|asm\|elf\|bin\)" -exec rm -f {} ';'
-	rm -rf tools/mkfs.minix tools/build tags .offset disk.img
-	rm -rf $(USER_APPS)
+	@find . -regex ".*\.\(o\|sym\|asm\|elf\|bin\)" -exec rm -f {} ';'
+	@rm -rf tools/mkfs.minix tools/build tags .offset disk.img
+	@rm -rf $(USER_APPS)
+	@echo " [CLEAN]"
 
 lines:
 	@echo "code lines:"
