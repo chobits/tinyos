@@ -2,6 +2,8 @@ chos
 ====
  A monolithic 32-bit kernel.
 
+![os](doc/os.png)
+
 Quick start
 ===========
 ```
